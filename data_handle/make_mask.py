@@ -2,7 +2,9 @@ import os
 import json
 import cv2
 import numpy as np
-
+"""
+根据 JSON 标注生成多分类 mask
+"""
 def generate_masks(
     images_dir,
     labels_dir,

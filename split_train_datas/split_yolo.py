@@ -2,6 +2,10 @@ import os
 import random
 import shutil
 from pathlib import Path
+"""
+将 YOLO 格式数据集按比例分割为训练集、验证集和测试集
+"""
+
 
 
 # -------------------------------------------------

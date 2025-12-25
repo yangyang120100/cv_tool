@@ -1,5 +1,7 @@
 import glob
-
+"""
+将 npz 文件名写入 txt 文件
+"""
 def write_name(npz_path,save_dir):
 	#npz文件路径
 	files = glob.glob(f'{npz_path}\*.npz')

@@ -1,6 +1,15 @@
 import json
 import os
 
+"""
+将 COCO 格式 annotations 拆分为每张图像一个 JSON，
+并转换为 Labelme 格式：
+- shapes -> bounding boxes
+- imagePath, imageHeight, imageWidth, imageData
+"""
+
+
+
 def coco_to_labelme(coco_json_path, output_dir, label_name="person"):
     """
     将 COCO 格式 annotations 拆分为每张图像一个 JSON，

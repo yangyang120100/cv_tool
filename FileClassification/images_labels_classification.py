@@ -2,6 +2,10 @@ import os
 import shutil
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
+"""
+将文件根据扩展名 分类复制或移动到指定目录
+"""
+
 
 
 def classification(all_file_dir, save_map, num_workers=8, move=False):

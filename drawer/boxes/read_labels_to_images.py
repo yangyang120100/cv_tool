@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+将 YOLO txt 或 LabelMe JSON 标注绘制到图像上
+"""
+
+
 
 import cv2
 import os

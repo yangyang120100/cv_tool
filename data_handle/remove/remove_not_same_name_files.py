@@ -1,6 +1,11 @@
 import os
 import shutil
 from pathlib import Path
+"""
+将 check_dir 中「文件名(stem) 在 ref_dir 中不存在」的文件移动/复制到 move_dir
+不考虑扩展名，仅对文件名进行匹配
+"""
+
 
 
 def move_extra_files_by_name(

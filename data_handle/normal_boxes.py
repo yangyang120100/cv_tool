@@ -1,6 +1,8 @@
 import os
 from PIL import Image
-
+"""
+将 LabelMe 格式的标注转换为 YOLO 格式
+"""
 def convert_label_line(line, img_width, img_height):
     parts = line.strip().split()
     if len(parts) != 5 and len(parts) != 6:

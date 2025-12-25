@@ -4,7 +4,9 @@ from pathlib import Path
 import cv2
 import glob
 import numpy as np
-
+"""
+将图像和 mask 保存为 npz 文件
+"""
 
 def npz_save(image_dir, label_dir, save_dir):
     image_files = os.listdir(image_dir)

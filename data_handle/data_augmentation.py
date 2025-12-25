@@ -4,6 +4,12 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import albumentations as A
 
+"""
+数据增强脚本
+"""
+
+
+
 # =====================================================
 # 1. 参数设置
 # =====================================================
@@ -25,22 +31,22 @@ os.makedirs(OUT_MASK_DIR, exist_ok=True)
 # =====================================================
 
 transform = A.Compose([
-    A.HorizontalFlip(p=0.5),
-    A.VerticalFlip(p=0.5),
-    A.RandomRotate90(p=0.5),
+    A.HorizontalFlip(p=0.5),                # 以50%的概率水平翻转图片
+    A.VerticalFlip(p=0.5),                  # 以50%的概率垂直翻转图片
+    A.RandomRotate90(p=0.5),                # 以50%的概率随机旋转90度（0, 90, 180, 270）
 
     A.ShiftScaleRotate(
-        shift_limit=0.05,
-        scale_limit=0.1,
-        rotate_limit=15,
-        border_mode=cv2.BORDER_CONSTANT,
-        value=0,
-        mask_value=0,
-        p=0.5
+        shift_limit=0.05,                   # 平移范围（相对宽高的5%）
+        scale_limit=0.1,                    # 缩放范围（±10%）
+        rotate_limit=15,                    # 随机旋转角度范围（±15度）
+        border_mode=cv2.BORDER_CONSTANT,    # 边界填充方式，使用常数填充
+        value=0,                            # 边界填充的像素值（图像）
+        mask_value=0,                       # 边界填充的像素值（mask）
+        p=0.5                               # 以50%的概率应用该增强
     ),
 
-    A.RandomBrightnessContrast(p=0.4),
-    A.GaussianBlur(blur_limit=3, p=0.2),
+    A.RandomBrightnessContrast(p=0.4),      # 以40%的概率随机调整亮度和对比度
+    A.GaussianBlur(blur_limit=3, p=0.2),    # 以20%的概率进行高斯模糊，最大模糊核为3
 ])
 
 # =====================================================

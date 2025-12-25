@@ -2,7 +2,9 @@ import os
 import threading
 from pathlib import Path
 import cv2
-
+"""
+将视频转换为图像序列并保存
+"""
 __all__=['video2images_and_save']
 
 def video2images(video_path,save_dir,save_fps):

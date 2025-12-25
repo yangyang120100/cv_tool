@@ -1,6 +1,9 @@
 import os
 from concurrent.futures import ThreadPoolExecutor
 
+"""
+重新映射标签类别
+"""
 # 配置路径
 labels_dir = r"D:\DataBase\person_datas\val\labels"          # 标签文件夹
 out_dir = r"D:\DataBase\person_datas\val\re_labels"   # 输出修改后的标签

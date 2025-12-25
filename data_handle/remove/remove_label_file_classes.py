@@ -1,3 +1,7 @@
+"""
+过滤标签文件中的类别
+"""
+
 import os
 from concurrent.futures import ThreadPoolExecutor
 
