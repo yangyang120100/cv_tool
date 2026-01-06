@@ -73,12 +73,12 @@ if __name__ == '__main__':
     # 背景=0, 线=1, 圆=2, 方块=3 等
     classes_map = {
         'background': 0,
-        'line': 255,
+        'cable': 255,
     }
 
-    images_dir = r"D:\Projects\U-2-Net\make_train_datas\images"
-    labels_dir = r"D:\Projects\U-2-Net\make_train_datas\labels"
-    save_labels_dir = r"D:\Projects\U-2-Net\make_train_datas\masks"
+    images_dir = r"D:\Projects\Scripting_tool\test_data\images"
+    labels_dir = r"D:\Projects\Scripting_tool\test_data\labels"
+    save_labels_dir = r"D:\Projects\Scripting_tool\test_data\masks"
 
     generate_masks(
         images_dir,

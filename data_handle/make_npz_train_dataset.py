@@ -13,6 +13,6 @@ def write_name(npz_path,save_dir):
 		f.write(name)
 
 if __name__ == '__main__':
-	save_path= r'D:\DataBase\line_train_dataset\augmented\val\npz'
-	txt_file_save_dir= r"D:\Projects\TransUNet\lists\lists_Synapse\val.txt"
+	save_path= r'D:\DataBase\cabel_train_datas\augmented_wash\val\npz'
+	txt_file_save_dir= r"D:\DataBase\cabel_train_datas\augmented_wash\val\val.txt"
 	write_name(save_path,txt_file_save_dir)

@@ -17,11 +17,11 @@ import albumentations as A
 AUG_TIMES = 3
 NUM_WORKERS = 8   # ⭐ 建议 = CPU 核数 或 核数*2
 
-IMAGE_DIR = r"D:\DataBase\data_original_size_v1\train_datas\val\images"
-MASK_DIR = r"D:\DataBase\data_original_size_v1\train_datas\val\masks"
+IMAGE_DIR = r"D:\DataBase\cabel_train_datas\new_datas\images"
+MASK_DIR = r"D:\DataBase\cabel_train_datas\new_datas\masks"
 
-OUT_IMAGE_DIR = os.path.join(os.path.dirname(IMAGE_DIR), "augmented_images")
-OUT_MASK_DIR = os.path.join(os.path.dirname(IMAGE_DIR), "augmented_masks")
+OUT_IMAGE_DIR = os.path.join(os.path.dirname(IMAGE_DIR), f"augmented_{Path(IMAGE_DIR).stem}")
+OUT_MASK_DIR = os.path.join(os.path.dirname(IMAGE_DIR), f"augmented_{Path(MASK_DIR).stem}")
 
 os.makedirs(OUT_IMAGE_DIR, exist_ok=True)
 os.makedirs(OUT_MASK_DIR, exist_ok=True)
