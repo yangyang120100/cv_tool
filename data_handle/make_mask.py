@@ -2,88 +2,120 @@ import os
 import json
 import cv2
 import numpy as np
-"""
-根据 JSON 标注生成多分类 mask
-"""
-def generate_masks(
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+def cv_imread_cn(path):
+    data = np.fromfile(path, dtype=np.uint8)
+    return cv2.imdecode(data, cv2.IMREAD_COLOR)
+
+
+def cv_imwrite_cn(path, img):
+    ext = os.path.splitext(path)[1]
+    success, encoded = cv2.imencode(ext, img)
+    if success:
+        encoded.tofile(path)
+    return success
+
+def process_single_image(
+    img_file,
+    images_dir,
+    labels_dir,
+    save_labels_dir,
+    classes_map,
+    generate_empty_mask
+):
+    img_path = os.path.join(images_dir, img_file)
+    img = cv_imread_cn(img_path)
+    if img is None:
+        return f"⚠ 图像读取失败：{img_path}"
+
+    h, w = img.shape[:2]
+    base_name = os.path.splitext(img_file)[0]
+    json_path = os.path.join(labels_dir, base_name + '.json')
+
+    mask = np.zeros((h, w), dtype=np.uint8)
+
+    if os.path.exists(json_path):
+        with open(json_path, 'r', encoding='utf-8') as f:
+            json_data = json.load(f)
+
+        shapes = json_data.get('shapes', [])
+        for shape in shapes:
+            label_name = shape['label']
+            if label_name in classes_map:
+                points = np.array(shape['points'], dtype=np.int32)
+                class_value = classes_map[label_name]
+                cv2.fillPoly(mask, [points], class_value)
+
+        status = f"✓ 生成 mask（含标注）：{img_file}"
+
+    else:
+        if not generate_empty_mask:
+            return f"✗ 无 JSON → 跳过：{img_file}"
+        status = f"✗ 无 JSON → 生成全黑 mask：{img_file}"
+
+    mask_save_path = os.path.join(save_labels_dir, base_name + ".png")
+    cv_imwrite_cn(mask_save_path, mask)
+
+    return status
+
+
+def generate_masks_multithread(
     images_dir,
     labels_dir,
     save_labels_dir,
     classes_map,
     generate_empty_mask=True,
-    img_exts=('.jpg', '.jpeg', '.png', '.bmp')
+    img_exts=('.jpg', '.jpeg', '.png', '.bmp'),
+    num_workers=8
 ):
-    """
-    根据 JSON 标注生成多分类 mask
-    Args:
-        images_dir: 原始图像文件夹
-        labels_dir: JSON 标签文件夹
-        save_labels_dir: mask 保存文件夹
-        classes_map: dict, 类名 -> 类别值，例如 {'line':1,'bg':0}
-        generate_empty_mask: 无 JSON 时是否生成全黑 mask
-        img_exts: 支持的图像扩展名
-    """
     os.makedirs(save_labels_dir, exist_ok=True)
-    image_files = [f for f in os.listdir(images_dir) if f.lower().endswith(img_exts)]
 
-    for img_file in image_files:
-        img_path = os.path.join(images_dir, img_file)
-        img = cv2.imread(img_path)
-        if img is None:
-            print(f"⚠ 图像读取失败：{img_path}")
-            continue
+    image_files = [
+        f for f in os.listdir(images_dir)
+        if f.lower().endswith(img_exts)
+    ]
 
-        h, w = img.shape[:2]
-        base_name = os.path.splitext(img_file)[0]
-        json_path = os.path.join(labels_dir, base_name + '.json')
+    print(f"启动多线程：{num_workers} workers，共 {len(image_files)} 张图像\n")
 
-        # mask 初始化为 0（背景）
-        mask = np.zeros((h, w), dtype=np.uint8)
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        futures = [
+            executor.submit(
+                process_single_image,
+                img_file,
+                images_dir,
+                labels_dir,
+                save_labels_dir,
+                classes_map,
+                generate_empty_mask
+            )
+            for img_file in image_files
+        ]
 
-        if os.path.exists(json_path):
-            with open(json_path, 'r', encoding='utf-8') as f:
-                json_data = json.load(f)
-            shapes = json_data.get('shapes', [])
+        for future in as_completed(futures):
+            print(future.result())
 
-            for shape in shapes:
-                label_name = shape['label']
-                if label_name in classes_map:
-                    points = np.array(shape['points'], dtype=np.int32)
-                    class_value = classes_map[label_name]
-                    cv2.fillPoly(mask, [points], class_value)
-
-            print(f"✓ 生成 mask（含标注）：{img_file}")
-
-        else:
-            if generate_empty_mask:
-                print(f"✗ 无 JSON → 生成全黑 mask：{img_file}")
-            else:
-                print(f"✗ 无 JSON → 跳过图像：{img_file}")
-                continue
-
-        # 保存 mask
-        mask_save_path = os.path.join(save_labels_dir, base_name + ".png")
-        cv2.imwrite(mask_save_path, mask)
-
-    print("\n🎉 mask 生成完成！")
-
+    print("\nmask 生成完成！")
 
 if __name__ == '__main__':
-    # 类别映射示例：多分类 mask
-    # 背景=0, 线=1, 圆=2, 方块=3 等
     classes_map = {
         'background': 0,
-        'cable': 255,
+        'cable':1
+        # 'pole': 1,
+        # 'pole_steelpipe': 2,
+        # 'pole_jiaogangta': 3
     }
 
-    images_dir = r"D:\Projects\Scripting_tool\test_data\images"
-    labels_dir = r"D:\Projects\Scripting_tool\test_data\labels"
-    save_labels_dir = r"D:\Projects\Scripting_tool\test_data\masks"
+    images_dir = r"D:\DataBase\cabel_train_datas\add_cable_datas\images"
+    labels_dir = r"D:\DataBase\cabel_train_datas\add_cable_datas\jsons"
+    save_labels_dir = r"D:\DataBase\cabel_train_datas\add_cable_datas\masks"
 
-    generate_masks(
+    generate_masks_multithread(
         images_dir,
         labels_dir,
         save_labels_dir,
         classes_map,
-        generate_empty_mask=True
+        generate_empty_mask=True,
+        num_workers=16 #线程数
     )

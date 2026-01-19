@@ -5,10 +5,10 @@ from glob import glob
 将 LabelMe JSON 格式转换为 YOLO txt 格式
 """
 # ==== 配置区域 ====
-json_dir = r"D:\DataBase\coco\train\json_labels"   # LabelMe JSON 文件夹
-img_dir = r"D:\DataBase\coco\train\images" # 图片文件夹（可选，用于获取图片大小）
-save_dir = r"D:\DataBase\coco\train\labels" # 输出 YOLO txt 文件夹
-classes = ['person']  # 按顺序填写类别名称
+json_dir = r"C:\Users\Kedio\Desktop\add_cable\jsons"   # LabelMe JSON 文件夹
+img_dir = r"C:\Users\Kedio\Desktop\add_cable\images" # 图片文件夹（可选，用于获取图片大小）
+save_dir = r"C:\Users\Kedio\Desktop\add_cable\jsons\labels" # 输出 YOLO txt 文件夹
+classes = ['cable']  # 按顺序填写类别名称
 # =================
 
 os.makedirs(save_dir, exist_ok=True)

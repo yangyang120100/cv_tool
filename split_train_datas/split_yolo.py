@@ -224,8 +224,8 @@ def verify_dataset(output_dir):
 # main
 # -------------------------------------------------
 if __name__ == "__main__":
-    images_directory = r"D:\Projects\U-2-Net\make_train_datas\images"
-    labels_directory = r"D:\Projects\U-2-Net\make_train_datas\labels"
+    images_directory = r"D:\DataBase\cabel_train_datas\new_datas\images"
+    labels_directory = r"D:\DataBase\cabel_train_datas\new_datas\jsons"
     output_directory = r"D:\Projects\Scripting_tool\output"
 
     split_yolo_dataset(

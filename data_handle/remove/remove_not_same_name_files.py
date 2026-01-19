@@ -116,9 +116,9 @@ def move_extra_files_by_name(
 
 if __name__ == '__main__':
     move_extra_files_by_name(
-        ref_dir=r"D:\DataBase\cabel_train_datas\augmented_wash\val\wash_images",#参考路径
-        check_dir=r"D:\DataBase\cabel_train_datas\train_datas\val\wash_masks",#被检查的路径
-        check_exts=(".png",),#检查的后缀名
+        ref_dir=r"D:\DataBase\cabel_train_datas\new_datas\images",#参考路径
+        check_dir=r"C:\Users\Kedio\Desktop\add_cable",#被检查的路径
+        check_exts=(".JPG",),#检查的后缀名
         on_mismatch="delete",#不匹配时的处理方式
         dry_run=True
     )
