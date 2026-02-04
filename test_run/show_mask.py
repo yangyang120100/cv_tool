@@ -27,14 +27,13 @@ def rgb_to_mask(rgb_label, cmap):
     return mask
 
 if __name__ == '__main__':
-    mask_dir = r"D:\DataBase\line_train_dataset\val\masks"
+    mask_dir = r"D:\DataBase\Transmission_Tower\train\masks"
 
     for mask_file_name in os.listdir(mask_dir):
         mask_file_path = os.path.join(mask_dir, mask_file_name)
         mask=cv2.imread(mask_file_path,cv2.IMREAD_GRAYSCALE)
         # cv2.imshow('mask',mask*100)
         # cv2.waitKey(0)
-
 
         # mask = cv2.imread(mask_file_path)[:, :, ::-1]
         # cmap = voc_colormap()

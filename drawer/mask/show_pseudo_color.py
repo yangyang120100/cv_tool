@@ -19,6 +19,7 @@ def show_pseudo_color(masks_dir):
             1: (0, 255, 0),  # cable - green
             2: (255, 0, 0),  # class2 - blue
             3: (0, 0, 255),  # class3 - red
+            4: (255,0,255),
         }
 
         h, w = mask.shape
@@ -32,5 +33,5 @@ def show_pseudo_color(masks_dir):
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    masks_dir=r"D:\DataBase\Transmission_Tower\train\masks"
+    masks_dir=r"D:\DataBase\Transmission_Tower\test\aaa"
     show_pseudo_color(masks_dir)

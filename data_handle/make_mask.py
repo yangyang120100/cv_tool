@@ -107,9 +107,9 @@ if __name__ == '__main__':
         # 'pole_jiaogangta': 3
     }
 
-    images_dir = r"D:\DataBase\cabel_train_datas\add_cable_datas\images"
-    labels_dir = r"D:\DataBase\cabel_train_datas\add_cable_datas\jsons"
-    save_labels_dir = r"D:\DataBase\cabel_train_datas\add_cable_datas\masks"
+    images_dir = r"D:\DataBase\cabel_train_datas\augmented_wash\train\images"
+    labels_dir = r"D:\DataBase\cabel_train_datas\augmented_wash\train\jsons"
+    save_labels_dir = r"D:\DataBase\cabel_train_datas\augmented_wash\train\masks"
 
     generate_masks_multithread(
         images_dir,

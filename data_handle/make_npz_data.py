@@ -67,8 +67,8 @@ def npz_save(image_dir, label_dir, save_dir):
                 executor.submit(process_single_file, image_file, image_dir, label_dir, save_dir, label_suffix)
 
 if __name__ == '__main__':
-    image_dir = r'D:\DataBase\Transmission_Tower\train\images'
-    label_dir = r'D:\DataBase\Transmission_Tower\train\masks'
-    save_dir = r'D:\DataBase\Transmission_Tower\train\npz'
+    image_dir = r'D:\DataBase\cabel_train_datas\add_cable_datas\augmented_images'
+    label_dir = r'D:\DataBase\cabel_train_datas\add_cable_datas\augmented_masks'
+    save_dir = r'D:\DataBase\cabel_train_datas\add_cable_datas\npz'
 
     npz_save(image_dir, label_dir, save_dir)
