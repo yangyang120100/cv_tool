@@ -27,7 +27,7 @@ def rgb_to_mask(rgb_label, cmap):
     return mask
 
 if __name__ == '__main__':
-    mask_dir = r"D:\DataBase\Transmission_Tower\train\masks"
+    mask_dir = r"D:\DataBase\Transmission_Tower\delet_datas\masks"
 
     for mask_file_name in os.listdir(mask_dir):
         mask_file_path = os.path.join(mask_dir, mask_file_name)

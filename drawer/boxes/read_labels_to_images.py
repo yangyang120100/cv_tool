@@ -3,15 +3,14 @@
 """
 将 YOLO txt 或 LabelMe JSON 标注绘制到图像上
 """
-
-
-
-import cv2
 import os
 import json
 from pathlib import Path
 import argparse
 import random
+
+import numpy as np
+import cv2
 
 def load_classes(classes_path):
     if not classes_path:
@@ -46,76 +45,91 @@ def yolo_to_bbox(xc, yc, w, h, img_w, img_h):
     return xmin, ymin, xmax, ymax
 
 
-def draw_labels_on_image(img_path, label_path, classes=None,
-                         color_map=None, thickness=2, font_scale=0.6):
+def draw_labels_on_image(
+        img_path,
+        label_path,
+        classes=None,
+        color_map=None,
+        thickness=2,
+        font_scale=0.6,
+        mask_alpha=0.4
+):
     """
-    支持 YOLO txt 和 LabelMe JSON 绘制
+    支持：
+    - YOLO txt：绘制 bbox
+    - LabelMe JSON：绘制 polygon mask（半透明）
     """
     img = cv2.imread(str(img_path))
     if img is None:
         raise RuntimeError(f"Cannot read image: {img_path}")
+
     h, w = img.shape[:2]
+    overlay = img.copy()   # 用于画 mask
+    count = 0
 
-    bboxes = []
-
+    # ================= YOLO TXT =================
     if label_path.suffix.lower() == '.txt' and label_path.exists():
-        # 原 YOLO txt
         with open(label_path, 'r', encoding='utf-8') as f:
-            lines = [ln.strip() for ln in f if ln.strip()]
-        for ln in lines:
-            parts = ln.split()
-            if len(parts) < 5:
-                continue
-            cls_id = parts[0]
-            xc, yc, bw, bh = map(float, parts[1:5])
-            cx = xc * w
-            cy = yc * h
-            bw *= w
-            bh *= h
-            xmin = max(0, int(round(cx - bw/2)))
-            ymin = max(0, int(round(cy - bh/2)))
-            xmax = min(w-1, int(round(cx + bw/2)))
-            ymax = min(h-1, int(round(cy + bh/2)))
-            bboxes.append((cls_id, xmin, ymin, xmax, ymax))
+            for ln in f:
+                ln = ln.strip()
+                if not ln:
+                    continue
+                parts = ln.split()
+                if len(parts) < 5:
+                    continue
 
+                cls_id = parts[0]
+                xc, yc, bw, bh = map(float, parts[1:5])
+                xmin, ymin, xmax, ymax = yolo_to_bbox(xc, yc, bw, bh, w, h)
+
+                try:
+                    cls_int = int(cls_id)
+                except:
+                    cls_int = hash(cls_id) & 0xFFFF
+
+                color = random_color(cls_int) if color_map is None else color_map.get(cls_int, random_color(cls_int))
+
+                cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, thickness)
+
+                label_text = classes[int(cls_id)] if classes and cls_id.isdigit() else str(cls_id)
+                cv2.putText(img, label_text, (xmin, max(0, ymin - 5)),
+                            cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, 2)
+
+                count += 1
+
+    # ================= LabelMe JSON =================
     elif label_path.suffix.lower() == '.json' and label_path.exists():
-        # LabelMe JSON
         with open(label_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
+
         for shape in data.get("shapes", []):
-            pts = shape.get("points", [])
-            if len(pts) == 0:
-                continue
-            xs = [p[0] for p in pts]
-            ys = [p[1] for p in pts]
-            xmin = max(0, int(min(xs)))
-            ymin = max(0, int(min(ys)))
-            xmax = min(w-1, int(max(xs)))
-            ymax = min(h-1, int(max(ys)))
-            cls_id = shape.get("label", "0")
-            bboxes.append((cls_id, xmin, ymin, xmax, ymax))
+            label = shape.get("label", "unknown")
+            points = shape.get("points", [])
 
-    count = 0
-    for cls_id, xmin, ymin, xmax, ymax in bboxes:
-        try:
-            cls_int = int(cls_id)
-        except:
-            cls_int = hash(cls_id) & 0xFFFF
+            if len(points) < 3:
+                continue  # polygon 至少 3 个点
 
-        color = random_color(cls_int) if color_map is None else color_map.get(cls_int, random_color(cls_int))
-        cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, thickness)
+            pts = [(int(p[0]), int(p[1])) for p in points]
+            pts_np = np.array(pts, dtype=np.int32)
 
-        label_text = str(cls_id)
-        if classes and 0 <= int(cls_id) < len(classes):
-            label_text = classes[int(cls_id)]
+            cls_int = hash(label) & 0xFFFF
+            color = random_color(cls_int)
 
-        # 文本背景
-        ((text_w, text_h), _) = cv2.getTextSize(label_text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, 1)
-        text_x = xmin
-        text_y = ymin - 5 if ymin - 5 > text_h else ymin + text_h + 5
-        cv2.rectangle(img, (text_x, text_y - text_h - 2), (text_x + text_w, text_y + 2), color, -1)
-        cv2.putText(img, label_text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255,255,255), 1, cv2.LINE_AA)
-        count += 1
+            # 1️⃣ 画 mask（填充）
+            cv2.fillPoly(overlay, [pts_np], color)
+
+            # 2️⃣ 画轮廓
+            cv2.polylines(img, [pts_np], isClosed=True, color=color, thickness=thickness)
+
+            # 3️⃣ 画 label
+            x0, y0 = pts_np[0]
+            cv2.putText(img, label, (x0, max(0, y0 - 5)),
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, 2)
+
+            count += 1
+
+        # mask 叠加
+        img = cv2.addWeighted(overlay, mask_alpha, img, 1 - mask_alpha, 0)
 
     return img, count
 
@@ -152,19 +166,29 @@ def process_folder(images_dir, labels_dir, out_dir, classes_path=None,
     for i, img_path in enumerate(img_files, 1):
         # label file: same basename with .txt under labels_dir, or in same folder (try both)
         rel = img_path.relative_to(images_dir)
-        label_path1 = labels_dir / rel.with_suffix('.txt')
-        label_path2 = img_path.with_suffix('.txt')  # fallback
+        # label_path1 = labels_dir / rel.with_suffix('.txt')
+        # label_path2 = img_path.with_suffix('.txt')  # fallback
+        #
+        # if label_path1.exists():
+        #     label_path = label_path1
+        # elif label_path2.exists():
+        #     label_path = label_path2
+        # else:
+        #     label_path = label_path1  # will be absent
 
-        if label_path1.exists():
-            label_path = label_path1
-        elif label_path2.exists():
-            label_path = label_path2
+        label_path_txt = labels_dir / rel.with_suffix('.txt')
+        label_path_json = labels_dir / rel.with_suffix('.json')
+
+        if label_path_txt.exists():
+            label_path = label_path_txt
+        elif label_path_json.exists():
+            label_path = label_path_json
         else:
-            label_path = label_path1  # will be absent
+            label_path = None
 
         try:
             out_img, cnt = draw_labels_on_image(img_path, label_path, classes=classes, color_map=color_map)
-            cv2.imshow('draw_img',cv2.resize(out_img,(1080,640)))
+            cv2.imshow('draw_img',cv2.resize(out_img,(1080,1080)))
             cv2.waitKey(0)
         except Exception as e:
             print(f"[ERROR] {img_path}: {e}")
@@ -194,18 +218,18 @@ def process_single_image(image_path, labels_dir, out_path, classes_path=None, sa
     # out_path.parent.mkdir(parents=True, exist_ok=True)
     # if cnt > 0 or save_undetected:
     #     cv2.imencode('.jpg', out_img)[1].tofile(str(out_path))
-    cv2.imshow('draw_img',cv2.resize(out_img,(1080,640)))
+    cv2.imshow('draw_img',cv2.resize(out_img,(640,640)))
     cv2.waitKey(0)
     print(f"[DONE] saved {out_path} (drawn boxes: {cnt})")
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Draw YOLO labels on images")
-    parser.add_argument('--images',default=r"D:\DataBase\Person detection.v16i.yolov8\train\images", help='images folder or single image path')
-    parser.add_argument('--labels',default=r"D:\DataBase\Person detection.v16i.yolov8\train\labels", help='labels folder (matching image basenames) or label file path')
-    parser.add_argument('--out', default=r"D:\Projects\Scripting tool\drawer\draw", help='output folder or single output image path')
-    parser.add_argument('--classes', default=r"D:\DataBase\sdgd_datas\classes.txt", help='optional classes.txt file (one class per line)')
+    parser.add_argument('--images',default=r"D:\DataBase\Insulator_datas\train\images", help='images folder or single image path')
+    parser.add_argument('--labels',default=r"D:\DataBase\Insulator_datas\train\labels", help='labels folder (matching image basenames) or label file path')
+    parser.add_argument('--out', default=r"D:\Projects\Scripting_tool\drawer\draw", help='output folder or single output image path')
+    parser.add_argument('--classes', default=r"D:\DataBase\Insulator_datas\classes.txt", help='optional classes.txt file (one class per line)')
     parser.add_argument('--save_undetected', action='store_true', help='also save images without labels')
-    parser.add_argument('--ext', nargs='*', default=['.jpg','.jpeg','.png','.bmp','.tif','.tiff'], help='image extensions to process')
+    parser.add_argument('--ext', nargs='*', default=['.jpg','.jpeg','.png','.bmp','.tif','.tiff','.JPG'], help='image extensions to process')
     return parser.parse_args()
 
 

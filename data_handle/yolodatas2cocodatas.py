@@ -7,14 +7,16 @@ YOLO 格式的数据集转化为 COCO 格式的数据集
 """
 
 import os
-import cv2
 import json
-from tqdm import tqdm
-from sklearn.model_selection import train_test_split
 import argparse
+from tqdm import tqdm
+
+import cv2
+import numpy as np
+from sklearn.model_selection import train_test_split
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--root_dir', default=r'D:\DataBase\person_datas\Person detection.v16i.yolov8\yolo_train\test', type=str,
+parser.add_argument('--root_dir', default=r'D:\DataBase\Insulator_datas\val', type=str,
                     help="root path of images and labels, include ./images and ./labels and classes.txt")
 parser.add_argument('--save_path', type=str, default='./_annotations.coco.json',
                     help="if not split the dataset, give a path to a json file")
@@ -90,7 +92,18 @@ def yolo2coco(arg):
         # 支持 png jpg 格式的图片。
         txtFile = index.replace('images', 'txt').replace('.jpg', '.txt').replace('.png', '.txt')
         # 读取图像的宽和高
-        im = cv2.imread(os.path.join(root_path, 'images/') + index)
+        # im = cv2.imread(os.path.join(root_path, 'images/') + index)
+        img_path = os.path.join(root_path, 'images', index)
+
+        im = cv2.imdecode(
+            np.fromfile(img_path, dtype=np.uint8),
+            cv2.IMREAD_COLOR
+        )
+
+        if im is None:
+            print(f"❌ 读取失败: {img_path}")
+            continue
+
         height, width, _ = im.shape
         if arg.random_split or arg.split_by_file:
             # 切换dataset的引用对象，从而划分数据集

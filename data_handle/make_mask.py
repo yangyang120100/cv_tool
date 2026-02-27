@@ -101,15 +101,15 @@ def generate_masks_multithread(
 if __name__ == '__main__':
     classes_map = {
         'background': 0,
-        'cable':1
-        # 'pole': 1,
-        # 'pole_steelpipe': 2,
-        # 'pole_jiaogangta': 3
+        # 'cable':1
+        'pole': 1,
+        'pole_steelpipe': 2,
+        'pole_jiaogangta': 3
     }
 
-    images_dir = r"D:\DataBase\cabel_train_datas\augmented_wash\train\images"
-    labels_dir = r"D:\DataBase\cabel_train_datas\augmented_wash\train\jsons"
-    save_labels_dir = r"D:\DataBase\cabel_train_datas\augmented_wash\train\masks"
+    images_dir = r"D:\DataBase\Transmission_Tower\delet_datas\images"
+    labels_dir = r"D:\DataBase\Transmission_Tower\delet_datas\jsons"
+    save_labels_dir = r"D:\DataBase\Transmission_Tower\delet_datas\masks"
 
     generate_masks_multithread(
         images_dir,
