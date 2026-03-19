@@ -4,7 +4,7 @@
 import os
 
 # 要扫描的目录
-directory = r"D:\Projects\ultralytics\output\scs_body\labels"  # 改成你自己的路径
+directory = r"D:\DataBase\Insulator_datas\yolo\test\remove_labels"  # 改成你自己的路径
 
 # 遍历目录及子目录
 for root, dirs, files in os.walk(directory):

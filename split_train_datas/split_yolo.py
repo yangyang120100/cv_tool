@@ -14,11 +14,14 @@ from pathlib import Path
 def find_label_file(labels_dir, stem):
     txt_path = Path(labels_dir) / f"{stem}.txt"
     json_path = Path(labels_dir) / f"{stem}.json"
+    png_path = Path(labels_dir) / f"{stem}.png"
 
     if txt_path.exists():
         return txt_path
     if json_path.exists():
         return json_path
+    if png_path.exists():
+        return png_path
     return None
 
 
@@ -224,9 +227,9 @@ def verify_dataset(output_dir):
 # main
 # -------------------------------------------------
 if __name__ == "__main__":
-    images_directory = r"D:\DataBase\cabel_train_datas\new_datas\images"
-    labels_directory = r"D:\DataBase\cabel_train_datas\new_datas\jsons"
-    output_directory = r"D:\Projects\Scripting_tool\output"
+    images_directory = r"D:\DataBase\Insulator_datas\images"
+    labels_directory = r"D:\DataBase\Insulator_datas\labels"
+    output_directory = r"D:\DataBase\Insulator_datas\yolo"
 
     split_yolo_dataset(
         images_dir=images_directory,

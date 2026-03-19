@@ -38,7 +38,7 @@ def count_labels_in_json_folder(json_dir):
     return label_counter
 
 
-json_dir = r"D:\DataBase\Transmission_Tower\train\jsons"
+json_dir = r"D:\DataBase\cabel_train_datas\jsons"
 
 label_counts = count_labels_in_json_folder(json_dir)
 

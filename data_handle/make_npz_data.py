@@ -1,4 +1,5 @@
 import os
+import argparse
 from pathlib import Path
 
 import cv2
@@ -36,12 +37,12 @@ def process_single_file(image_file, image_dir, label_dir, save_dir, label_suffix
         print(f"⚠ 读取失败：{image_path}")
         return
 
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
     gray_label = cv_imread_cn(label_path, cv2.IMREAD_GRAYSCALE)
     if gray_label is None:
         print(f"⚠ mask 读取失败：{label_path}")
         return
+
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     os.makedirs(save_dir, exist_ok=True)
     save_path = os.path.join(save_dir, Path(image_file).stem + '.npz')
@@ -51,7 +52,7 @@ def process_single_file(image_file, image_dir, label_dir, save_dir, label_suffix
     # print(f"image_file:{image_file}save done")
 
 
-def npz_save(image_dir, label_dir, save_dir):
+def npz_save(image_dir, label_dir, save_dir,max_workers):
     image_files = os.listdir(image_dir)
     label_files = os.listdir(label_dir)
 
@@ -62,13 +63,21 @@ def npz_save(image_dir, label_dir, save_dir):
         image_suffix = image_pather.suffix
         label_suffix = label_pather.suffix
 
-        with ThreadPoolExecutor(max_workers=16) as executor:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             for image_file in image_files:
                 executor.submit(process_single_file, image_file, image_dir, label_dir, save_dir, label_suffix)
 
 if __name__ == '__main__':
-    image_dir = r'D:\DataBase\Transmission_Tower\train\images'
-    label_dir = r'D:\DataBase\Transmission_Tower\train\masks'
-    save_dir = r'D:\DataBase\Transmission_Tower\train\npz'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--image_dir', type=str,
+                        default=r'D:\DataBase\cabel_train_datas\aug_images', help='图像路径')
+    parser.add_argument('--label_dir', type=str,
+                        default=r'D:\DataBase\cabel_train_datas\aug_masks', help='掩码图路径')
+    parser.add_argument('--save_dir', type=str,
+                        default=r'D:\DataBase\cabel_train_datas\npz', help='保存路径')
+    parser.add_argument('--max_workers', type=str,
+                        default=32, help='保存线程数')
+    args = parser.parse_args()
 
-    npz_save(image_dir, label_dir, save_dir)
+    npz_save(args.image_dir, args.label_dir, args.save_dir,args.max_workers)
+

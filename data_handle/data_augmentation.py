@@ -1,55 +1,70 @@
 import os
 import cv2
+import hashlib
+import numpy as np
+import argparse
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor
 import albumentations as A
 
 """
-数据增强脚本
+工业级语义分割数据增强脚本
+兼容 Albumentations 新版 API
+使用 argparse 进行参数配置
 """
 
 # =====================================================
-# 1. 参数设置
+# 1 全局变量（将在 main 中根据 args 重新赋值）
 # =====================================================
+AUG_TIMES = None
+NUM_WORKERS = None
+IMAGE_DIR = None
+MASK_DIR = None
+OUT_IMAGE_DIR = None
+OUT_MASK_DIR = None
 
-AUG_TIMES = 3
-NUM_WORKERS = 16   # ⭐ 建议 = CPU 核数 或 核数*2
-
-IMAGE_DIR = r"D:\DataBase\Transmission_Tower\delet_datas\images"
-MASK_DIR = r"D:\DataBase\Transmission_Tower\delet_datas\masks"
-
-OUT_IMAGE_DIR = os.path.join(os.path.dirname(IMAGE_DIR), f"augmented_{Path(IMAGE_DIR).stem}")
-OUT_MASK_DIR = os.path.join(os.path.dirname(IMAGE_DIR), f"augmented_{Path(MASK_DIR).stem}")
-
-os.makedirs(OUT_IMAGE_DIR, exist_ok=True)
-os.makedirs(OUT_MASK_DIR, exist_ok=True)
+VALID_EXT = {".jpg", ".jpeg", ".png"}
 
 # =====================================================
-# 2. 数据增强策略（无 Resize、无预处理）
+# 2 数据增强策略
 # =====================================================
-
 transform = A.Compose([
-    A.HorizontalFlip(p=0.5),                # 以50%的概率水平翻转图片
-    A.VerticalFlip(p=0.5),                  # 以50%的概率垂直翻转图片
-    A.RandomRotate90(p=0.5),                # 以50%的概率随机旋转90度（0, 90, 180, 270）
 
-    A.ShiftScaleRotate(
-        shift_limit=0.05,                   # 平移范围（相对宽高的5%）
-        scale_limit=0.1,                    # 缩放范围（±10%）
-        rotate_limit=15,                    # 随机旋转角度范围（±15度）
-        border_mode=cv2.BORDER_CONSTANT,    # 边界填充方式，使用常数填充
-        value=0,                            # 边界填充的像素值（图像）
-        mask_value=0,                       # 边界填充的像素值（mask）
-        p=0.5                               # 以50%的概率应用该增强
+    # 必定发生一种几何变换
+    A.OneOf([
+        A.HorizontalFlip(),
+        A.VerticalFlip(),
+        A.RandomRotate90(),
+    ], p=1.0),
+
+    A.Affine(
+        translate_percent=(0.0, 0.08),
+        scale=(0.9, 1.15),
+        rotate=(-20, 20),
+        shear=(-5, 5),
+        border_mode=cv2.BORDER_CONSTANT,
+        fill=0,
+        fill_mask=0,
+        p=0.7
     ),
 
-    A.RandomBrightnessContrast(p=0.4),      # 以40%的概率随机调整亮度和对比度
-    A.GaussianBlur(blur_limit=3, p=0.2),    # 以20%的概率进行高斯模糊，最大模糊核为3
+    A.OneOf([
+        A.GaussianBlur(blur_limit=3),
+        A.GaussNoise(),
+    ], p=0.3),
+
+    A.RandomBrightnessContrast(p=0.4),
+
 ])
 
 # =====================================================
-# 3. IO 函数
+# 3 工具函数
 # =====================================================
+def img_hash(img):
+    """计算图像hash用于去重"""
+    return hashlib.md5(img.tobytes()).hexdigest()
+
 
 def load_image_mask(image_path, mask_path):
     image = cv2.imread(image_path)
@@ -59,55 +74,110 @@ def load_image_mask(image_path, mask_path):
 
 def save_image_mask(image, mask, name):
     cv2.imwrite(os.path.join(OUT_IMAGE_DIR, name), image)
-
     mask_name = Path(name).stem + ".png"
     cv2.imwrite(os.path.join(OUT_MASK_DIR, mask_name), mask)
 
-# =====================================================
-# 4. 单样本处理函数（线程任务）
-# =====================================================
 
+# =====================================================
+# 4 单样本处理
+# =====================================================
 def process_one(name):
+    stem = Path(name).stem
+
     img_path = os.path.join(IMAGE_DIR, name)
-    mask_name = Path(name).stem + ".png"
-    mask_path = os.path.join(MASK_DIR, mask_name)
+    mask_path = os.path.join(MASK_DIR, stem + ".png")
 
     if not os.path.exists(mask_path):
-        return f"⚠ mask 不存在: {name}"
+        return
 
     image, mask = load_image_mask(img_path, mask_path)
 
     if image is None or mask is None:
-        return f"❌ 读取失败: {name}"
+        return
 
     # 保存原图
     save_image_mask(image, mask, name)
 
-    # 保存增强图
+    origin_hash = img_hash(image)
+    used_hash = set()
+
     for i in range(AUG_TIMES):
-        augmented = transform(image=image, mask=mask)
-        aug_image = augmented["image"]
-        aug_mask = augmented["mask"]
+        for _ in range(10):  # 最多尝试10次
+            augmented = transform(image=image, mask=mask)
+            aug_img = augmented["image"]
+            aug_mask = augmented["mask"]
 
-        new_name = name.replace(".", f"_aug{i}.")
-        save_image_mask(aug_image, aug_mask, new_name)
+            h = img_hash(aug_img)
 
-    return f"✅ processed {name}"
+            # 与原图相同
+            if h == origin_hash:
+                continue
+            # 与之前增强重复
+            if h in used_hash:
+                continue
+
+            used_hash.add(h)
+
+            new_name = f"{stem}_aug{i}.jpg"
+            save_image_mask(aug_img, aug_mask, new_name)
+            break
+
 
 # =====================================================
-# 5. 多线程执行
+# 5 参数解析
 # =====================================================
+def parse_args():
+    parser = argparse.ArgumentParser(description="语义分割数据增强脚本")
+    parser.add_argument('--image_dir', '-i', required=False,
+                        default=r"D:\DataBase\cabel_train_datas\images",
+                        help='输入图像目录')
+    parser.add_argument('--mask_dir', '-m', required=False,
+                        default=r"D:\DataBase\cabel_train_datas\masks",
+                        help='输入掩码目录')
+    parser.add_argument('--aug_times', type=int, default=4,
+                        help='每张图像的增强次数 (默认: 4)')
+    parser.add_argument('--num_workers', type=int, default=32,
+                        help='并发线程数 (默认: 32)')
+    # 输出目录自动生成，无需额外参数
+    return parser.parse_args()
 
+
+# =====================================================
+# 6 主程序
+# =====================================================
 if __name__ == "__main__":
-    image_names = sorted(os.listdir(IMAGE_DIR))
-    total = len(image_names)
+    args = parse_args()
 
-    print(f"🚀 开始数据增强，共 {total} 张，线程数 = {NUM_WORKERS}")
+    # 将参数赋值给全局变量，供各函数使用
+    AUG_TIMES = args.aug_times
+    NUM_WORKERS = args.num_workers
+    IMAGE_DIR = args.image_dir
+    MASK_DIR = args.mask_dir
+
+    # 自动生成输出目录（位于输入目录的父目录下，加 "aug_" 前缀）
+    OUT_IMAGE_DIR = os.path.join(os.path.dirname(IMAGE_DIR), f"aug_{Path(IMAGE_DIR).stem}")
+    OUT_MASK_DIR = os.path.join(os.path.dirname(IMAGE_DIR), f"aug_{Path(MASK_DIR).stem}")
+
+    os.makedirs(OUT_IMAGE_DIR, exist_ok=True)
+    os.makedirs(OUT_MASK_DIR, exist_ok=True)
+
+    # 获取所有图像文件
+    image_names = [
+        f for f in os.listdir(IMAGE_DIR)
+        if Path(f).suffix.lower() in VALID_EXT
+    ]
+
+    print("\n🚀 开始数据增强")
+    print(f"图片数量: {len(image_names)}")
+    print(f"增强倍数: {AUG_TIMES}")
+    print(f"线程数: {NUM_WORKERS}")
+    print(f"输出图像目录: {OUT_IMAGE_DIR}")
+    print(f"输出掩码目录: {OUT_MASK_DIR}\n")
 
     with ThreadPoolExecutor(max_workers=NUM_WORKERS) as executor:
-        futures = [executor.submit(process_one, name) for name in image_names]
+        list(tqdm(
+            executor.map(process_one, image_names),
+            total=len(image_names)
+        ))
 
-        for idx, future in enumerate(as_completed(futures), 1):
-            print(f"[{idx}/{total}] {future.result()}")
-
-    print("🎉 数据增强完成")
+    print("\n🎉 数据增强完成")

@@ -16,7 +16,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--root_dir', default=r'D:\DataBase\Insulator_datas\val', type=str,
+parser.add_argument('--root_dir', default=r'D:\DataBase\Insulator_datas\yolo\test', type=str,
                     help="root path of images and labels, include ./images and ./labels and classes.txt")
 parser.add_argument('--save_path', type=str, default='./_annotations.coco.json',
                     help="if not split the dataset, give a path to a json file")

@@ -6,12 +6,12 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 
 # 配置路径
-labels_dir = r"D:\DataBase\person_datas\val\labels"  # 标签文件夹
-out_dir = r"D:\DataBase\person_datas\val\remove_labels"  # 输出过滤后的标签
+labels_dir = r"D:\DataBase\Insulator_datas\yolo\test\labels"  # 标签文件夹
+out_dir = r"D:\DataBase\Insulator_datas\yolo\test\remove_labels"  # 输出过滤后的标签
 os.makedirs(out_dir, exist_ok=True)
 
 # 指定需要保留的类别 ID
-keep_classes = {1}
+keep_classes = {2,3,4}
 
 
 def process_file(fname):
