@@ -116,9 +116,9 @@ def move_extra_files_by_name(
 
 if __name__ == '__main__':
     move_extra_files_by_name(
-        ref_dir=r"D:\DataBase\Insulator_datas\yolo\train\labels",#参考路径
-        check_dir=r"D:\DataBase\Insulator_datas\yolo\train\images",#被检查的路径
-        check_exts=(".JPG",),#检查的后缀名
+        ref_dir=r"D:\DataBase\Insulator_datas\yolo\val2017",#参考路径
+        check_dir=r"D:\DataBase\Insulator_datas\yolo\jsons",#被检查的路径
+        check_exts=(".json",),#检查的后缀名
         on_mismatch="delete",#不匹配时的处理方式
         dry_run=True
     )

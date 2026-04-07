@@ -228,16 +228,16 @@ def verify_dataset(output_dir):
 # -------------------------------------------------
 if __name__ == "__main__":
     images_directory = r"D:\DataBase\Insulator_datas\images"
-    labels_directory = r"D:\DataBase\Insulator_datas\labels"
+    labels_directory = r"D:\DataBase\Insulator_datas\jsons"
     output_directory = r"D:\DataBase\Insulator_datas\yolo"
 
     split_yolo_dataset(
         images_dir=images_directory,
         labels_dir=labels_directory,
         output_dir=output_directory,
-        train_ratio=0.7,
-        val_ratio=0.2,
-        test_ratio=0.1,
+        train_ratio=0.85,
+        val_ratio=0.15,
+        test_ratio=0.0,
         seed=42
     )
 

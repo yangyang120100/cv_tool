@@ -70,11 +70,11 @@ def npz_save(image_dir, label_dir, save_dir,max_workers):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--image_dir', type=str,
-                        default=r'D:\DataBase\cabel_train_datas\aug_images', help='图像路径')
+                        default=r'D:\DataBase\Insulator_datas\images', help='图像路径')
     parser.add_argument('--label_dir', type=str,
-                        default=r'D:\DataBase\cabel_train_datas\aug_masks', help='掩码图路径')
+                        default=r'D:\DataBase\Insulator_datas\masks', help='掩码图路径')
     parser.add_argument('--save_dir', type=str,
-                        default=r'D:\DataBase\cabel_train_datas\npz', help='保存路径')
+                        default=r'D:\DataBase\Insulator_datas\npz', help='保存路径')
     parser.add_argument('--max_workers', type=str,
                         default=32, help='保存线程数')
     args = parser.parse_args()

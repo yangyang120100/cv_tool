@@ -99,18 +99,26 @@ def generate_masks_multithread(
     print("\nmask 生成完成！")
 
 if __name__ == '__main__':
+    # classes_map = {
+    #     'background': 0,
+    #     'cable':1,
+    #     'white_cable':2
+    #     # 'pole': 1,
+    #     # 'pole_steelpipe': 2,
+    #     # 'pole_jiaogangta': 3
+    # }
     classes_map = {
-        'background': 0,
-        'cable':1,
-        'white_cable':2
-        # 'pole': 1,
-        # 'pole_steelpipe': 2,
-        # 'pole_jiaogangta': 3
-    }
+        'jyz_xsjyz':0,
+    'jyz_zhusjyz':1,
+    'jyz_pin':2,
+    'jyz_porcelaincrossarm':3,
+    'jyz_shackle':4,
+    'jyz_strain':5
 
-    images_dir = r"D:\DataBase\cabel_train_datas\images"
-    labels_dir = r"D:\DataBase\cabel_train_datas\jsons"
-    save_labels_dir = r"D:\DataBase\cabel_train_datas\masks"
+    }
+    images_dir = r"D:\DataBase\Insulator_datas\images"
+    labels_dir = r"D:\DataBase\Insulator_datas\jsons"
+    save_labels_dir = r"D:\DataBase\Insulator_datas\masks"
 
     generate_masks_multithread(
         images_dir,

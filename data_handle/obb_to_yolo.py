@@ -101,6 +101,6 @@ def main(json_dir, save_dir, num_workers=8):
 
 
 if __name__ == "__main__":
-    json_dir = r"D:\DataBase\Insulator_datas\val\jsons"     # OBB json目录
-    save_dir = r"D:\DataBase\Insulator_datas\val\labels"    # 输出YOLO标签目录
+    json_dir = r"D:\DataBase\Insulator_datas\jsons"     # OBB json目录
+    save_dir = r"D:\DataBase\Insulator_datas\labels"    # 输出YOLO标签目录
     main(json_dir, save_dir, num_workers=8)  # 可改线程数
