@@ -227,9 +227,9 @@ def verify_dataset(output_dir):
 # main
 # -------------------------------------------------
 if __name__ == "__main__":
-    images_directory = r"D:\DataBase\Insulator_datas\images"
-    labels_directory = r"D:\DataBase\Insulator_datas\jsons"
-    output_directory = r"D:\DataBase\Insulator_datas\yolo"
+    images_directory = r"D:\Projects\Scripting_tool\VOC2028\images"
+    labels_directory = r"D:\Projects\Scripting_tool\VOC2028\labels"
+    output_directory = r"D:\Projects\Scripting_tool\VOC2028\yolo"
 
     split_yolo_dataset(
         images_dir=images_directory,

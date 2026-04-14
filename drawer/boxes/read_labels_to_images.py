@@ -224,10 +224,10 @@ def process_single_image(image_path, labels_dir, out_path, classes_path=None, sa
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Draw YOLO labels on images")
-    parser.add_argument('--images',default=r"D:\DataBase\Insulator_datas\images", help='images folder or single image path')
-    parser.add_argument('--labels',default=r"D:\DataBase\Insulator_datas\labels", help='labels folder (matching image basenames) or label file path')
+    parser.add_argument('--images',default=r"D:\Projects\Scripting_tool\VOC2028\images", help='images folder or single image path')
+    parser.add_argument('--labels',default=r"D:\Projects\Scripting_tool\VOC2028\labels", help='labels folder (matching image basenames) or label file path')
     parser.add_argument('--out', default=r"D:\Projects\Scripting_tool\drawer\draw", help='output folder or single output image path')
-    parser.add_argument('--classes', default=r"D:\DataBase\Insulator_datas\classes.txt", help='optional classes.txt file (one class per line)')
+    parser.add_argument('--classes', default=r"D:\Projects\Scripting_tool\VOC2028\classes.txt", help='optional classes.txt file (one class per line)')
     parser.add_argument('--save_undetected', action='store_true', help='also save images without labels')
     parser.add_argument('--ext', nargs='*', default=['.jpg','.jpeg','.png','.bmp','.tif','.tiff','.JPG'], help='image extensions to process')
     return parser.parse_args()
