@@ -83,7 +83,7 @@ def batch_convert_voc_to_yolo(xml_dir, output_dir, class_list):
 # ================= 配置区域 =================
 if __name__ == "__main__":
     # 1. 你的 XML 文件夹路径
-    input_xml_folder = r'E:\hat\Annotations'
+    input_xml_folder = r'E:\hat\xml'
 
     # 2. 转换后的 TXT 保存路径
     output_txt_folder = r'E:\hat\labels'

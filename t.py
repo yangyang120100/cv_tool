@@ -1,112 +1,123 @@
-import numpy as np
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+脚本：get_dir_sizes.py
+用法：python get_dir_sizes.py /path/to/directory
+功能：列出指定目录下所有子文件夹及其占用的磁盘空间大小（递归统计）。
+"""
 
+import os
+import sys
+import argparse
+from pathlib import Path
 
-class DetectionEvaluator:
-    def __init__(self, iou_threshold=0.5):
-        self.iou_threshold = iou_threshold
+def human_readable_size(size_bytes: int) -> str:
+    """将字节数转换为人类可读的字符串（如 '1.23 MB'）。"""
+    if size_bytes == 0:
+        return "0 B"
+    units = ["B", "KB", "MB", "GB", "TB", "PB"]
+    idx = 0
+    while size_bytes >= 1024 and idx < len(units) - 1:
+        size_bytes /= 1024.0
+        idx += 1
+    # 根据数值大小决定小数位数
+    if idx == 0:
+        return f"{int(size_bytes)} {units[idx]}"
+    else:
+        return f"{size_bytes:.2f} {units[idx]}"
 
-    def calculate_iou(self, box1, box2):
-        """
-        计算两个水平框的 IoU
-        box 格式: [x1, y1, x2, y2]
-        """
-        x_left = max(box1[0], box2[0])
-        y_top = max(box1[1], box2[1])
-        x_right = min(box1[2], box2[2])
-        y_bottom = min(box1[3], box2[3])
+def get_folder_size(path: Path) -> int:
+    """
+    递归计算文件夹的总大小（字节数）。
+    忽略无法访问的文件或文件夹（如权限不足）。
+    """
+    total = 0
+    try:
+        # 使用 scandir 比 walk 更高效
+        with os.scandir(path) as it:
+            for entry in it:
+                if entry.is_file(follow_symlinks=False):
+                    try:
+                        total += entry.stat().st_size
+                    except (OSError, PermissionError):
+                        continue  # 跳过无法读取大小的文件
+                elif entry.is_dir(follow_symlinks=False):
+                    # 递归计算子文件夹大小
+                    total += get_folder_size(Path(entry.path))
+    except PermissionError:
+        # 无法读取该文件夹，返回 0
+        pass
+    return total
 
-        if x_right < x_left or y_bottom < y_top:
-            return 0.0
+def main():
+    parser = argparse.ArgumentParser(
+        description="列出指定目录下所有子文件夹及其占用的磁盘空间"
+    )
+    parser.add_argument(
+        "--directory",
+        type=str,
+        default=r"D:\Projects",
+        help="要扫描的目录路径"
+    )
+    parser.add_argument(
+        "-s", "--sort",
+        action="store_true",
+        help="按大小降序排序（默认按文件夹名称排序）"
+    )
+    parser.add_argument(
+        "-a", "--all",
+        action="store_true",
+        help="同时显示隐藏文件夹（Unix 下以 '.' 开头，Windows 下隐藏属性）"
+    )
+    args = parser.parse_args()
 
-        intersection_area = (x_right - x_left) * (y_bottom - y_top)
-        area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
-        area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    root_dir = Path(args.directory).resolve()
+    if not root_dir.is_dir():
+        print(f"错误：'{root_dir}' 不是有效的目录或不存在。")
+        sys.exit(1)
 
-        union_area = area1 + area2 - intersection_area
-        return intersection_area / union_area if union_area > 0 else 0
+    print(f"正在扫描目录: {root_dir}")
+    print("-" * 60)
 
-    def evaluate(self, all_predictions, all_ground_truths):
-        """
-        all_predictions: 列表，每个元素为 [img_id, x1, y1, x2, y2, score, class_id]
-        all_ground_truths: 字典，格式为 {img_id: [[x1, y1, x2, y2, class_id], ...]}
-        """
-        # 1. 按照置信度从高到低排序
-        all_predictions.sort(key=lambda x: x[5], reverse=True)
+    # 收集所有直接子文件夹
+    # 方法：使用 iterdir() 并检查 is_dir()
+    # 如果不需要隐藏文件夹，过滤掉名称以 '.' 开头的（Unix 风格）
+    folders = []
+    for item in root_dir.iterdir():
+        if item.is_dir():
+            if not args.all and item.name.startswith('.'):
+                continue
+            folders.append(item)
 
-        num_preds = len(all_predictions)
-        tp = np.zeros(num_preds)
-        fp = np.zeros(num_preds)
+    if not folders:
+        print("该目录下没有找到任何子文件夹。")
+        return
 
-        # 记录每个图像中 GT 的匹配状态
-        # gt_matched = {img_id: [False, False, ...]}
-        gt_matched = {
-            img_id: [False] * len(gts)
-            for img_id, gts in all_ground_truths.items()
-        }
+    # 计算每个文件夹的大小（可能需要一些时间）
+    results = []
+    for folder in folders:
+        print(f"计算中: {folder.name} ...", end=' ', flush=True)
+        size_bytes = get_folder_size(folder)
+        size_human = human_readable_size(size_bytes)
+        results.append((folder.name, size_bytes, size_human))
+        print("完成")
 
-        # 统计总的 GT 数量（用于计算 Recall）
-        total_gts = sum(len(gts) for gts in all_ground_truths.values())
+    # 排序
+    if args.sort:
+        results.sort(key=lambda x: x[1], reverse=True)  # 按字节数降序
+    else:
+        results.sort(key=lambda x: x[0])  # 按文件夹名升序
 
-        # 2. 贪婪匹配逻辑
-        for i, pred in enumerate(all_predictions):
-            img_id, px1, py1, px2, py2, score, pcls = pred
-            pred_box = [px1, py1, px2, py2]
+    # 输出表格
+    print("\n" + "-" * 60)
+    # 计算最大名称长度用于对齐
+    max_name_len = max(len(name) for name, _, _ in results)
+    name_width = min(max_name_len, 50)  # 限制最大宽度
+    for name, _, size_human in results:
+        # 对名称进行截断（如果需要）
+        display_name = name if len(name) <= name_width else name[:name_width-3] + "..."
+        print(f"{display_name:<{name_width}}  {size_human:>12}")
+    print("-" * 60)
 
-            best_iou = -1
-            best_gt_idx = -1
-
-            if img_id in all_ground_truths:
-                gts = all_ground_truths[img_id]
-                for gt_idx, gt in enumerate(gts):
-                    gx1, gy1, gx2, gy2, gcls = gt
-
-                    # 类别必须一致
-                    if pcls != gcls:
-                        continue
-
-                    iou = self.calculate_iou(pred_box, [gx1, gy1, gx2, gy2])
-                    if iou > best_iou:
-                        best_iou = iou
-                        best_gt_idx = gt_idx
-
-            # 3. 判定 TP 或 FP
-            if best_iou >= self.iou_threshold:
-                if not gt_matched[img_id][best_gt_idx]:
-                    tp[i] = 1
-                    gt_matched[img_id][best_gt_idx] = True
-                else:
-                    # 该 GT 已被更高置信度的预测框占用
-                    fp[i] = 1
-            else:
-                # IoU 不足或未找到对应类别的 GT
-                fp[i] = 1
-
-        # 4. 计算指标
-        tp_cumsum = np.cumsum(tp)
-        fp_cumsum = np.cumsum(fp)
-        precisions = tp_cumsum / (tp_cumsum + fp_cumsum + 1e-10)
-        recalls = tp_cumsum / (total_gts + 1e-10)
-
-        return precisions, recalls
-
-
-# --- 使用示例 ---
 if __name__ == "__main__":
-    # 模拟数据：[img_id, x1, y1, x2, y2, confidence, class_id]
-    mock_preds = [
-        [1, 10, 10, 50, 50, 0.95, 0],
-        [1, 12, 12, 52, 52, 0.88, 0],  # 这个应该是 FP，因为和上面重复匹配同一个 GT
-        [2, 20, 20, 60, 60, 0.92, 0]
-    ]
-
-    # 真实标签：{img_id: [[x1, y1, x2, y2, class_id], ...]}
-    mock_gts = {
-        1: [[10, 10, 50, 50, 0]],
-        2: [[20, 20, 60, 60, 0]]
-    }
-
-    evaluator = DetectionEvaluator(iou_threshold=0.5)
-    p, r = evaluator.evaluate(mock_preds, mock_gts)
-
-    print(f"最高 Recall: {r[-1]:.2f}")
-    print(f"对应 Precision: {p[-1]:.2f}")
+    main()

@@ -119,8 +119,8 @@ def convert_labelme_obb_to_coco(json_dir, img_dir, classes_txt, output_json):
 if __name__ == "__main__":
     # 配置路径
     convert_labelme_obb_to_coco(
-        json_dir=r"D:\DataBase\Insulator_datas\jsons",
-        img_dir=r"D:\DataBase\Insulator_datas\images",
-        classes_txt=r"D:\DataBase\Insulator_datas\classes.txt",
-        output_json=r"D:\DataBase\Insulator_datas\instances_trainval2017.json"
+        json_dir=r"D:\DataBase\Insulator_datas_add\jsons",
+        img_dir=r"D:\DataBase\Insulator_datas_add\images",
+        classes_txt=r"D:\DataBase\Insulator_datas_add\classes.txt",
+        output_json=r"D:\DataBase\Insulator_datas_add\labels\instances_trainval2017.json"
     )
