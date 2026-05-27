@@ -134,7 +134,7 @@ def parse_args():
     parser.add_argument('--mask_dir', '-m', required=False,
                         default=r"D:\DataBase\cabel_train_datas\masks",
                         help='输入掩码目录')
-    parser.add_argument('--aug_times', type=int, default=4,
+    parser.add_argument('--aug_times', type=int, default=2,
                         help='每张图像的增强次数 (默认: 4)')
     parser.add_argument('--num_workers', type=int, default=32,
                         help='并发线程数 (默认: 32)')

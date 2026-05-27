@@ -12,7 +12,7 @@ def get_unique_pixels(file_path):
     return set(np.unique(img))
 
 def main():
-    path = r"D:\DataBase\cabel_train_datas\aug_masks"
+    path = r"D:\DataBase\road\goose\train\labels\panoptic"
     # 收集所有图像文件
     image_files = []
     for filename in os.listdir(path):
