@@ -111,4 +111,4 @@ def group_files_by_field(
     return groups
 
 if __name__ == '__main__':
-    group_files_by_field(r"D:\DataBase\road\goose_2d_train\images\train",['vis'],'copy',r"D:\DataBase\road\goose\train\images",recursive=True)
+    group_files_by_field(r"D:\DataBase\road\goose_2d_val\images\val",['vis','nir'],'copy',r"D:\DataBase\road\goose\val\images",recursive=True)

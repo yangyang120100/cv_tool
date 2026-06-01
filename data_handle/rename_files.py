@@ -61,7 +61,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="批量修改文件扩展名，覆盖目标文件"
     )
-    parser.add_argument("--directory", help="目标目录路径",default=r"D:\DataSets\goose\images\train")
+    parser.add_argument("--directory", help="目标目录路径",default=r"D:\DataBase\road\goose\val\labels\instanceids")
     parser.add_argument("--old_ext", help="原扩展名（如 jpg 或 .jpg）",default=".png")
     parser.add_argument("--new_ext", help="新扩展名（如 png 或 .png）",default=".jpg")
     parser.add_argument("-r", "--recursive", action="store_true",

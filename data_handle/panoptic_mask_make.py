@@ -6,22 +6,22 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-
+#生成全景分割标注数据
 # ============================================================
 # 用户配置
 # ============================================================
 
 # labelids 根目录
-LABEL_DIR = r"D:\DataBase\road\goose\train\labels\labelids"
+LABEL_DIR = r"D:\DataBase\road\goose\val\labels\labelids"
 
 # instanceids 根目录
-INSTANCE_DIR = r"D:\DataBase\road\goose\train\labels\instanceids"
+INSTANCE_DIR = r"D:\DataBase\road\goose\val\labels\instanceids"
 
 # 输出 panoptic png 目录
-OUTPUT_PANOPTIC_DIR = r"D:\Projects\Scripting_tool\output\panoptic"
+OUTPUT_PANOPTIC_DIR = r"D:\DataBase\road\goose\val\labels\panoptic"
 
 # 输出 json
-OUTPUT_JSON = r"D:\Projects\Scripting_tool\output\panoptic.json"
+OUTPUT_JSON = r"D:\DataBase\road\goose\val\labels\panoptic.json"
 
 
 # ------------------------------------------------------------
