@@ -12,7 +12,7 @@ def get_unique_pixels(file_path):
     return set(np.unique(img))
 
 def main():
-    path = r"D:\DataBase\cabel_train_datas\aug_masks"
+    path = r"D:\DataBase\road\goose\val\labels\semantic"
     # 收集所有图像文件
     image_files = []
     for filename in os.listdir(path):
@@ -40,6 +40,7 @@ def main():
                 print(f"处理文件 {file} 时出错: {e}")
 
     print("所有 mask 中出现的像素值类别：", sorted(all_pixels))
+    print("总mask像素类别数：",len(all_pixels))
 
 if __name__ == "__main__":
     main()

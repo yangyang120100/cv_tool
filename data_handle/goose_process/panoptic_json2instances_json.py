@@ -13,19 +13,19 @@ from tqdm import tqdm
 # ============================================================
 
 # 原图目录（jpg/png 都可以，按你的实际情况改）
-IMAGE_DIR = r"D:\DataSets\goose\images\train"
+IMAGE_DIR = r"D:\DataBase\road\goose\val\images\vis"
 
 # 语义 mask 目录（单通道 png）
-SEMANTIC_DIR = r"D:\DataSets\goose\semantic\train"
+SEMANTIC_DIR = r"D:\DataBase\road\goose\val\labels\semantic"
 
 # 实例 mask 目录（单通道 png）
-INSTANCE_DIR = r"D:\DataSets\goose\instanceids"
+INSTANCE_DIR = r"D:\DataBase\road\goose\val\labels\instanceids"
 
 # 输出 panoptic png 目录
-OUTPUT_PANOPTIC_DIR = r"D:\DataSets\goose\panoptic\train"
+OUTPUT_PANOPTIC_DIR = r"D:\DataBase\road\goose\val\labels\panoptic"
 
 # 输出 panoptic json
-OUTPUT_JSON = r"D:\DataSets\goose\panoptic_t2.json"
+OUTPUT_JSON = r"D:\DataBase\road\goose\val\labels\annotations\panoptic_train.json"
 
 
 # ============================================================

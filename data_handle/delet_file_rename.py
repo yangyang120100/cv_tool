@@ -70,4 +70,4 @@ if __name__ == "__main__":
     # remove_substring_from_filename(single_file, "labelids")
 
     # 示例2：批量处理某目录下所有 .png 文件
-    batch_remove_substring(r"D:\DataBase\road\goose\val\images\vis", "_windshield_vis", "*.png")
+    batch_remove_substring(r"D:\DataBase\road\goose\train\images", "_windshield_vis", "*.png")
