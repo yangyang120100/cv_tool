@@ -150,8 +150,8 @@ def dataset_statistics(data):
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--panoptic_json", default=r"D:\DataBase\road\goose\val\labels\p2\panoptic_val.json")
-    parser.add_argument("--panoptic_root", default=r"D:\DataBase\road\goose\val\labels\p2\panoptic_masks")
+    parser.add_argument("--panoptic_json", default=r"D:\DataBase\road\goose\train\labels\panoptic_val.json")
+    parser.add_argument("--panoptic_root", default=r"D:\DataBase\road\goose\train\labels\panoptic_masks")
     parser.add_argument("--save_report", default=None)
 
     args = parser.parse_args()
