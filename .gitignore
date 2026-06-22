@@ -1,4 +1,4 @@
-# 只忽略常见的非 Python 内容，而不是“全部”
+# 常见的非 Python 内容
 __pycache__/
 *.pyc
 .idea/
@@ -6,12 +6,3 @@ __pycache__/
 *.md
 venv/
 .env
-# 保留所有 *.py 文件（无需额外规则）
-
-
-# 3. 重新包含所有 .py 文件
-!*.py
-!*.git
-
-# （可选）确保 .gitignore 本身也被追踪，方便团队共享规则
-!.gitignore
