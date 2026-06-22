@@ -107,46 +107,18 @@ if __name__ == '__main__':
     #     # 'pole_steelpipe': 2,
     #     # 'pole_jiaogangta': 3
     # }
-    # classes_map = {
-    # 'jyz_xsjyz':0,
-    # 'jyz_zhusjyz':1,
-    # 'jyz_pin':2,
-    # 'jyz_porcelaincrossarm':3,
-    # 'jyz_shackle':4,
-    # 'jyz_strain':5
-    #
-    # }
-    classes_map={
-    "unlabeled":0,
-   "paved-area":1,
-    "dirt":2,
-    "grass":3,
-    "gravel":4,
-    "water":5,
-    "rocks":6,
-    "pool":7,
-    "vegetation":8,
-    'roof':9,
-    'wall':10,
-    'window':11,
-    'door':12,
-    'fence':13,
-    'fence-pole':14,
-    'person':15,
-    'dog':16,
-    'car':17,
-    'bicycle':18,
-    'tree':19,
-    'bald-tree':20,
-    'ar-marker':21,
-    'obstacle':22,
-    'conflicting':23,
-    'sky':24,
-    'utility-pole':25,
+    classes_map = {
+        'jyz_xsjyz':0,
+    'jyz_zhusjyz':1,
+    'jyz_pin':2,
+    'jyz_porcelaincrossarm':3,
+    'jyz_shackle':4,
+    'jyz_strain':5
+
     }
-    images_dir = r"E:\add_mask2former_dataset\images"
-    labels_dir = r"E:\add_mask2former_dataset\jsons"
-    save_labels_dir = r"E:\add_mask2former_dataset\masks"
+    images_dir = r"D:\DataBase\Insulator_datas\images"
+    labels_dir = r"D:\DataBase\Insulator_datas\jsons"
+    save_labels_dir = r"D:\DataBase\Insulator_datas\masks"
 
     generate_masks_multithread(
         images_dir,
