@@ -111,8 +111,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="批量修改文件扩展名（可同时重命名主文件名）")
     parser.add_argument("--directory", help="目标目录路径",default=r"E:\test\images")
-    parser.add_argument("--old_ext", help="原扩展名（如 jpg 或 .jpg）",default=".jpg")
-    parser.add_argument("--new_ext", help="新扩展名（如 png 或 .png）",default=".JPG")
+    parser.add_argument("--old_ext", help="原扩展名（如 jpg 或 .jpg）",default=".JPG")
+    parser.add_argument("--new_ext", help="新扩展名（如 png 或 .png）",default=".jpg")
     parser.add_argument( "--recursive", action="store_true",
                         help="递归处理子目录",default=True)
     parser.add_argument("--mode", choices=["none", "timestamp", "counter"],
