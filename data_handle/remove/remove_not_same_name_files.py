@@ -116,10 +116,10 @@ def move_extra_files_by_name(
 
 if __name__ == '__main__':
     move_extra_files_by_name(
-        ref_dir=r"D:\DataBase\Insulator_datas\jsons",#参考路径
-        check_dir=r"\\192.168.1.155\SharedFolder_I\1_图像识别相关数据\2_施工验收项目\1_施工验收标注数据\3_施工验收模型提取数据&训练数据\3_绝缘子✔\训练数据(obb)\2026_4_30_obb\绝缘子_数据集(2026_4_30_obb)\jsons\val",#被检查的路径
-        check_exts=(".json",),#检查的后缀名
-        on_mismatch="copy",#不匹配时的处理方式
+        ref_dir=r"E:\tset_seg_images\mask2former\road\o-images",#参考路径
+        check_dir=r"E:\tset_seg_images\mask2former\road\d-images_0617_2",#被检查的路径
+        check_exts=(".JPG",),#检查的后缀名
+        on_mismatch="delete",#不匹配时的处理方式
         dry_run=True,
-        move_dir=r"D:\DataBase\Insulator_datas_add\jsons"
+        move_dir=r"E:\tset_seg_images\mask2former\road\new__images"
     )
