@@ -14,10 +14,10 @@ from pycocotools import mask as mask_utils
 # 路径配置
 # ============================================================
 
-IMAGE_DIR = r"D:\DataSets\goose\images\train"
-INSTANCE_DIR = r"D:\DataSets\goose\instanceids"
-SEMANTIC_DIR = r"D:\DataSets\goose\semantic\train"
-OUTPUT_JSON = r"D:\DataSets\goose\annotations\instances_t2.json"
+IMAGE_DIR = r"D:\DataBase\road\goose\val\images"
+INSTANCE_DIR = r"D:\DataBase\road\goose\val\labels\instanceids"
+SEMANTIC_DIR = r"D:\DataBase\road\goose\val\labels\semantic"
+OUTPUT_JSON = r"D:\DataBase\road\goose\val\labels\annotations\instances_val.json"
 
 
 # ============================================================
