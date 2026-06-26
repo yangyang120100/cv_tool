@@ -116,10 +116,10 @@ def move_extra_files_by_name(
 
 if __name__ == '__main__':
     move_extra_files_by_name(
-        ref_dir=r"E:\tset_seg_images\mask2former\road\o-images",#参考路径
-        check_dir=r"E:\tset_seg_images\mask2former\road\d-images_0617_2",#被检查的路径
-        check_exts=(".JPG",),#检查的后缀名
+        ref_dir=r"E:\add_road_06_24\images",#参考路径
+        check_dir=r"E:\add_road_06_24\jsonsold",#被检查的路径
+        check_exts=(".json",),#检查的后缀名
         on_mismatch="delete",#不匹配时的处理方式
         dry_run=True,
-        move_dir=r"E:\tset_seg_images\mask2former\road\new__images"
+        move_dir=r"E:\add_road_06_24\new"
     )

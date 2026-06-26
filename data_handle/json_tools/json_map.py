@@ -5,12 +5,8 @@ import os
 # 格式：'旧标签': '新标签'
 # 例如：将 'water' 改为 'inland-water'
 LABEL_MAP = {
-    "water":"inland-water",
-    "paved-area":"concrete-pavement",
-    "vegetation":"tall-vegetation",
-    "grass":"low-vegetation",
-    "utility-pole":"concrete-pole",
-    "tree":"woods"
+    "cable":"conductor",
+    "white_cable":"conductor"
 }
 
 
@@ -65,7 +61,7 @@ def convert_labels_in_json(input_path, output_path=None, label_map=None):
 if __name__ == "__main__":
     import os
 
-    json_dir=r"E:\add_road_test\jsons"
+    json_dir=r"E:\add_road_06_24\jsonsold"
     for file_name in os.listdir(json_dir):
         json_path=os.path.join(json_dir,file_name)
         convert_labels_in_json(json_path, json_path)
