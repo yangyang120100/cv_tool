@@ -61,7 +61,7 @@ def convert_labels_in_json(input_path, output_path=None, label_map=None):
 if __name__ == "__main__":
     import os
 
-    json_dir=r"E:\add_road_06_24\jsonsold"
+    json_dir=r"E:\add_road_0701\jsons"
     for file_name in os.listdir(json_dir):
         json_path=os.path.join(json_dir,file_name)
         convert_labels_in_json(json_path, json_path)

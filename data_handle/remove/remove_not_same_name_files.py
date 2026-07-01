@@ -116,10 +116,10 @@ def move_extra_files_by_name(
 
 if __name__ == '__main__':
     move_extra_files_by_name(
-        ref_dir=r"E:\add_road_06_24\images",#参考路径
-        check_dir=r"E:\add_road_06_24\jsonsold",#被检查的路径
+        ref_dir=r"D:\DataSets\MyRoad\images",#参考路径
+        check_dir=r"D:\DataSets\MyRoad\jsons",#被检查的路径
         check_exts=(".json",),#检查的后缀名
-        on_mismatch="delete",#不匹配时的处理方式
+        on_mismatch="ignore",#不匹配时的处理方式
         dry_run=True,
-        move_dir=r"E:\add_road_06_24\new"
+        move_dir=r"E:\add_road_0701\move_jsons"
     )

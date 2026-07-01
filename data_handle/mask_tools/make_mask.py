@@ -114,39 +114,12 @@ if __name__ == '__main__':
     # 'jyz_porcelaincrossarm':3,
     # 'jyz_shackle':4,
     # 'jyz_strain':5
-    #
     # }
-    classes_map={
-    "unlabeled":0,
-   "paved-area":1,
-    "dirt":2,
-    "grass":3,
-    "gravel":4,
-    "water":5,
-    "rocks":6,
-    "pool":7,
-    "vegetation":8,
-    'roof':9,
-    'wall':10,
-    'window':11,
-    'door':12,
-    'fence':13,
-    'fence-pole':14,
-    'person':15,
-    'dog':16,
-    'car':17,
-    'bicycle':18,
-    'tree':19,
-    'bald-tree':20,
-    'ar-marker':21,
-    'obstacle':22,
-    'conflicting':23,
-    'sky':24,
-    'utility-pole':25,
-    }
-    images_dir = r"E:\add_mask2former_dataset\images"
-    labels_dir = r"E:\add_mask2former_dataset\jsons"
-    save_labels_dir = r"E:\add_mask2former_dataset\masks"
+    classes_map={'background': 0, 'asphalt-road': 1, 'concrete-pavement': 2, 'brick-road': 3, 'dirt': 4, 'gravel': 5, 'inland-water': 6, 'standing-water': 7, 'woods': 8, 'tall-vegetation': 9, 'low-vegetation': 10, 'roof': 11, 'wall': 12, 'fence': 13, 'fence-post': 14, 'snow': 15, 'concrete-pole': 16, 'angle-steel-tower': 17, 'steel-tube-tower': 18, 'conductor': 19, 'sky': 20, 'obstacle': 21, 'car': 22, 'bus': 23, 'work-vehicle': 24, 'large-vehicle': 25, 'bicycle': 26, 'person': 27, 'manhole-cover': 28, 'distant-building': 29, 'traffic-light': 30, 'house': 31, 'tricycle': 32}
+
+    images_dir = r"D:\DataSets\MyRoad\images"
+    labels_dir = r"D:\DataSets\MyRoad\jsons"
+    save_labels_dir = r"D:\DataSets\MyRoad\masks"
 
     generate_masks_multithread(
         images_dir,

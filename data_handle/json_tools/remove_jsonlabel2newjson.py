@@ -51,8 +51,8 @@ def main():
         """
     )
 
-    parser.add_argument("--base-dir", default=r"E:\add_road_06_24\jsons", help="基础 JSON 文件所在目录")
-    parser.add_argument("--add-dir", default=r"E:\add_road_06_24\jsonsold", help="需要从中提取 shape 的 JSON 目录")
+    parser.add_argument("--base-dir", default=r"E:\add_road_0701\mask_jsons", help="基础 JSON 文件所在目录")
+    parser.add_argument("--add-dir", default=r"E:\add_road_0701\jsons", help="需要从中提取 shape 的 JSON 目录")
     parser.add_argument("-l", "--labels", nargs="+", default=['conductor'], help="要提取的 label 类别，可多个")
     parser.add_argument("--label-field", default="label", help="label 字段名 (默认: label)")
     parser.add_argument("-o", "--output-dir", help="输出目录（不指定时需搭配 --inplace）")

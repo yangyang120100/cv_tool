@@ -2,8 +2,8 @@ import os
 import cv2
 import numpy as np
 
-image_dir = r"D:\DataBase\cabel_train_datas\aug_images"
-mask_dir = r"D:\DataBase\cabel_train_datas\aug_masks"
+image_dir = r"E:\test\images"
+mask_dir = r"E:\test\masks"
 # save_dir = "overlay"
 #
 # os.makedirs(save_dir, exist_ok=True)

@@ -5,12 +5,7 @@ from pathlib import Path
 import os
 
 
-ALL_CLASSES = [
-    "unlabeled", "paved-area", "dirt", "grass", "gravel", "water",
-    "rocks", "pool", "vegetation", "roof", "wall", "window", "door",
-    "fence", "fence-pole", "person", "dog", "car", "bicycle",
-    "tree", "bald-tree", "ar-marker", "obstacle", "conflicting","sky","utility-pole"
-]
+ALL_CLASSES = ['background', 'asphalt-road', 'concrete-pavement', 'brick-road', 'dirt', 'gravel', 'inland-water', 'standing-water', 'woods', 'tall-vegetation', 'low-vegetation', 'roof', 'wall', 'fence', 'fence-post', 'snow', 'concrete-pole', 'angle-steel-tower', 'steel-tube-tower', 'conductor', 'sky', 'obstacle', 'car', 'bus', 'work-vehicle', 'large-vehicle', 'bicycle', 'person', 'manhole-cover', 'distant-building', 'traffic-light', 'house', 'tricycle', 'distribution box']
 
 CLASS_MAP = {i: j for i, j in enumerate(ALL_CLASSES)}
 
@@ -240,9 +235,9 @@ def batch_convert(
 if __name__ == "__main__":
 
     batch_convert(
-        mask_dir=r"E:\add_mask2former_dataset\masks",
-        image_dir=r"E:\add_mask2former_dataset\images",
-        json_dir=r"E:\add_mask2former_dataset\jsons",
+        mask_dir=r"E:\cable_data\masks",
+        image_dir=r"E:\cable_data\images",
+        json_dir=r"E:\cable_data\mask_jsons",
         min_area=4000,
-        epsilon_ratio=0.003
+        epsilon_ratio=0.001
     )

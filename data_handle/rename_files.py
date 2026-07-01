@@ -110,13 +110,13 @@ def rename_files(directory, old_ext, new_ext, recursive=False,
 def main():
     parser = argparse.ArgumentParser(
         description="批量修改文件扩展名（可同时重命名主文件名）")
-    parser.add_argument("--directory", help="目标目录路径",default=r"E:\test\images")
-    parser.add_argument("--old_ext", help="原扩展名（如 jpg 或 .jpg）",default=".JPG")
-    parser.add_argument("--new_ext", help="新扩展名（如 png 或 .png）",default=".jpg")
+    parser.add_argument("--directory", help="目标目录路径",default=r"D:\DataSets\MyRoad\images")
+    parser.add_argument("--old_ext", help="原扩展名（如 jpg 或 .jpg）",default=".jpg")
+    parser.add_argument("--new_ext", help="新扩展名（如 png 或 .png）",default=".JPG")
     parser.add_argument( "--recursive", action="store_true",
                         help="递归处理子目录",default=True)
     parser.add_argument("--mode", choices=["none", "timestamp", "counter"],
-                        default="none",
+                        default="timestamp",
                         help="文件名重命名模式：none(仅改扩展名), timestamp(时间戳+序号), counter(基础名+序号)")
     parser.add_argument("--base-name", default="new_name",
                         help="counter 模式的基础名（默认: new_name）")
