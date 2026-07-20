@@ -3,9 +3,17 @@ import json
 import numpy as np
 from pathlib import Path
 import os
+from tqdm import tqdm
 
-
-ALL_CLASSES = ['background', 'asphalt-road', 'concrete-pavement', 'brick-road', 'dirt', 'gravel', 'inland-water', 'standing-water', 'woods', 'tall-vegetation', 'low-vegetation', 'roof', 'wall', 'fence', 'fence-post', 'snow', 'concrete-pole', 'angle-steel-tower', 'steel-tube-tower', 'conductor', 'sky', 'obstacle', 'car', 'bus', 'work-vehicle', 'large-vehicle', 'bicycle', 'person', 'manhole-cover', 'distant-building', 'traffic-light', 'house', 'tricycle', 'distribution box']
+ALL_CLASSES =['background', 'asphalt-road', 'concrete-pavement', 'brick-road', 'dirt', 'gravel', 'inland-water', 'standing-water', 'woods', 'tall-vegetation', 'low-vegetation', 'roof', 'wall', 'fence', 'fence-post', 'snow', 'concrete-pole', 'angle-steel-tower', 'steel-tube-tower', 'conductor', 'sky', 'obstacle', 'car', 'bus', 'work-vehicle', 'large-vehicle', 'bicycle', 'person', 'manhole-cover', 'distant-building', 'traffic-light', 'house', 'tricycle']
+# ALL_CLASSES = ['undefined', 'traffic_cone', 'snow', 'cobble', 'obstacle', 'leaves', 'street_light', 'bikeway',
+#                'ego_vehicle', 'pedestrian_crossing', 'road_block', 'road_marking', 'car', 'bicycle', 'person', 'bus',
+#                'forest', 'bush', 'moss', 'traffic_light', 'motorcycle', 'sidewalk', 'curb', 'asphalt', 'gravel',
+#                'boom_barrier', 'rail_track', 'tree_crown', 'tree_trunk', 'debris', 'crops', 'soil', 'rider', 'animal',
+#                'truck', 'on_rails', 'caravan', 'trailer', 'building', 'wall', 'rock', 'fence', 'guard_rail', 'bridge',
+#                'tunnel', 'pole', 'traffic_sign', 'misc_sign', 'barrier_tape', 'kick_scooter', 'low_grass', 'high_grass',
+#                'scenery_vegetation', 'sky', 'water', 'wire', 'outlier', 'heavy_machinery', 'container', 'hedge',
+#                'barrel', 'pipe', 'tree_root', 'military_vehicle']
 
 CLASS_MAP = {i: j for i, j in enumerate(ALL_CLASSES)}
 
@@ -137,107 +145,89 @@ def mask_to_labelme(
             indent=2
         )
 
-
-def batch_convert(
-        mask_dir,
-        image_dir,
-        json_dir,
-        min_area=50,
-        epsilon_ratio=0.003
-):
+def batch_convert(mask_dir, image_dir, json_dir, min_area=50, epsilon_ratio=0.003, num_workers=1):
     mask_dir = Path(mask_dir)
     image_dir = Path(image_dir)
     json_dir = Path(json_dir)
-
-    json_dir.mkdir(
-        parents=True,
-        exist_ok=True
-    )
+    json_dir.mkdir(parents=True, exist_ok=True)
 
     image_map = {}
-
     for img_path in image_dir.iterdir():
-
         if img_path.suffix.lower() in IMAGE_SUFFIX:
-            image_map[
-                img_path.stem
-            ] = img_path
+            image_map[img_path.stem] = img_path
 
-    success = 0
-    failed = 0
+    mask_files = sorted(mask_dir.glob("*.png"))
+    print(f"find mask: {len(mask_files)}")
+
+    # 准备任务
+    tasks = []
     skipped = 0
-
-    mask_files = sorted(
-        mask_dir.glob("*.png")
-    )
-
-    print(
-        f"find mask: {len(mask_files)}"
-    )
-
     for mask_path in mask_files:
-
         stem = mask_path.stem
-
         image_path = image_map.get(stem)
-
         if image_path is None:
-
-            print(
-                f"[skip] image not found: {stem}"
-            )
-
+            print(f"[skip] image not found: {stem}")
             skipped += 1
             continue
+        output_json = json_dir / f"{stem}.json"
+        tasks.append((mask_path, image_path, output_json))
 
-        output_json = (
-            json_dir /
-            f"{stem}.json"
-        )
+    if num_workers <= 1:
+        # 单线程 + 进度条
+        success = 0
+        failed = 0
+        with tqdm(tasks, desc="Converting", unit="file") as pbar:
+            for mask_path, image_path, output_json in pbar:
+                stem = mask_path.stem
+                try:
+                    mask_to_labelme(mask_path, image_path, output_json, min_area, epsilon_ratio)
+                    success += 1
+                except Exception as e:
+                    failed += 1
+                    tqdm.write(f"[fail] {stem}: {e}")
+                pbar.set_postfix(success=success, failed=failed)
+    else:
+        # 多线程 + 进度条
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        import threading
+        lock = threading.Lock()
+        success = 0
+        failed = 0
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            future_to_stem = {}
+            for mask_path, image_path, output_json in tasks:
+                stem = mask_path.stem
+                future = executor.submit(mask_to_labelme, mask_path, image_path, output_json, min_area, epsilon_ratio)
+                future_to_stem[future] = stem
 
-        try:
-
-            mask_to_labelme(
-                mask_path,
-                image_path,
-                output_json,
-                min_area=min_area,
-                epsilon_ratio=epsilon_ratio
-            )
-
-            success += 1
-
-            print(
-                f"[ok] {stem}"
-            )
-
-        except Exception as e:
-
-            failed += 1
-
-            print(
-                f"[fail] {stem}: {e}"
-            )
+            with tqdm(total=len(tasks), desc="Converting", unit="file") as pbar:
+                for future in as_completed(future_to_stem):
+                    stem = future_to_stem[future]
+                    try:
+                        future.result()
+                        with lock:
+                            success += 1
+                    except Exception as e:
+                        with lock:
+                            failed += 1
+                        tqdm.write(f"[fail] {stem}: {e}")
+                    with lock:
+                        pbar.update(1)
+                        pbar.set_postfix(success=success, failed=failed)
 
     print("\n==========")
-    print(
-        f"success : {success}"
-    )
-    print(
-        f"failed  : {failed}"
-    )
-    print(
-        f"skipped : {skipped}"
-    )
+    print(f"success : {success}")
+    print(f"failed  : {failed}")
+    print(f"skipped : {skipped}")
     print("==========")
 
 
 if __name__ == "__main__":
-
     batch_convert(
-        mask_dir=r"E:\cable_data\masks",
-        image_dir=r"E:\cable_data\images",
-        json_dir=r"E:\cable_data\mask_jsons",
-        min_area=4000,
-        epsilon_ratio=0.001
+        mask_dir=r"E:\add_road\masks",
+        image_dir=r"E:\add_road\images",
+        json_dir=r"E:\add_road\jsons",
+        min_area=100,
+        epsilon_ratio=0.0003,
+        num_workers=64
     )
