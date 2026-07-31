@@ -56,10 +56,14 @@ def mask_to_labelme(
 
     h, w = image.shape[:2]
 
-    image_rel_path = os.path.relpath(
-        image_path,
-        start=output_json.parent
-    ).replace("\\", "/")
+    try:
+        image_rel_path = os.path.relpath(
+            image_path,
+            start=output_json.parent
+        ).replace("\\", "/")
+    except ValueError:
+        # 跨盘符时无法生成相对路径，使用绝对路径（或仅文件名）
+        image_rel_path = str(image_path).replace("\\", "/")
 
     labelme_data = {
         "version": "5.5.0",
@@ -224,10 +228,10 @@ def batch_convert(mask_dir, image_dir, json_dir, min_area=50, epsilon_ratio=0.00
 
 if __name__ == "__main__":
     batch_convert(
-        mask_dir=r"E:\add_road\masks",
-        image_dir=r"E:\add_road\images",
-        json_dir=r"E:\add_road\jsons",
-        min_area=100,
-        epsilon_ratio=0.0003,
-        num_workers=64
+        mask_dir=r"D:\PythonProject\dinov3\test_results\masks",
+        image_dir=r"E:\test_all_add_road_dataset\add_images",
+        json_dir=r"D:\PythonProject\dinov3\test_results\jsons",
+        min_area=4096,
+        epsilon_ratio=0.0001,
+        num_workers=16
     )
