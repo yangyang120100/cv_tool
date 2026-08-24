@@ -26,29 +26,207 @@ def load_classes(classes_path):
         names = [line.strip() for line in f if line.strip()]
     return names
 
-def generate_yolo_colors(n_classes, saturation=1.0, value=1.0, hue_offset=0.0):
+def generate_distinct_colors(
+        n_classes,
+        fixed_first_color=(255, 0, 0),
+        candidate_count=20000,
+        min_l=35,
+        max_l=90,
+        min_chroma=45,
+        max_chroma=110,
+        seed=42,
+):
     """
-    生成类似 YOLO 风格的 RGB 颜色列表，索引 0 固定为红色。
+    使用 Lab + Farthest Point Sampling 生成高区分度颜色。
+
+    目标：
+        最大化所有类别颜色之间的最小 Lab 距离。
 
     Args:
-        n_classes: 类别总数
-        saturation: 饱和度 (0~1)，默认 1.0 使颜色鲜艳
-        value: 明度 (0~1)，默认 1.0
-        hue_offset: 色相偏移量，默认 0.0（从红色开始）
+        n_classes:
+            类别数量。
+
+        fixed_first_color:
+            第 0 类固定颜色，RGB。
+            默认红色 (255, 0, 0)。
+
+        candidate_count:
+            候选颜色数量。
+            越大越容易找到区分度高的颜色。
+            20000 对 34 类已经足够。
+
+        min_l / max_l:
+            Lab L* 范围。
+            防止颜色过暗或者过亮。
+
+        min_chroma / max_chroma:
+            色度范围。
+            防止出现灰色。
+
+        seed:
+            随机种子，保证每次生成结果一致。
 
     Returns:
-        list of tuple: 长度为 n_classes 的 RGB 颜色列表 (0~255)
+        list[tuple]:
+            RGB 颜色列表。
     """
-    colors = []
-    for i in range(n_classes):
-        if i == 0:
-            colors.append((255, 0, 0))
-        else:
-            hue = ((i - 1) / (n_classes - 1) + hue_offset) % 1.0 if n_classes > 1 else 0
-            r, g, b = colorsys.hsv_to_rgb(hue, saturation, value)
-            colors.append((int(r * 255), int(g * 255), int(b * 255)))
-    return colors
 
+    if n_classes <= 0:
+        return []
+
+    if n_classes == 1:
+        return [fixed_first_color]
+
+    rng = np.random.default_rng(seed)
+
+    # ============================================================
+    # 1. 生成大量候选 RGB
+    # ============================================================
+
+    candidates_rgb = rng.integers(
+        0,
+        256,
+        size=(candidate_count, 3),
+        dtype=np.uint8
+    )
+
+    # ============================================================
+    # 2. RGB -> Lab
+    # ============================================================
+
+    candidates_rgb_img = candidates_rgb.reshape(
+        -1, 1, 3
+    )
+
+    candidates_lab = cv2.cvtColor(
+        candidates_rgb_img,
+        cv2.COLOR_RGB2LAB
+    ).reshape(-1, 3).astype(np.float32)
+
+    # OpenCV Lab:
+    # L = 0~255
+    # a = 0~255
+    # b = 0~255
+    #
+    # 转换成标准 Lab：
+    #
+    # L*: 0~100
+    # a*: -128~127
+    # b*: -128~127
+
+    candidates_lab[:, 0] = candidates_lab[:, 0] * 100.0 / 255.0
+    candidates_lab[:, 1] -= 128.0
+    candidates_lab[:, 2] -= 128.0
+
+    # ============================================================
+    # 3. 限制亮度
+    # ============================================================
+
+    L = candidates_lab[:, 0]
+    a = candidates_lab[:, 1]
+    b = candidates_lab[:, 2]
+
+    chroma = np.sqrt(a * a + b * b)
+
+    valid = (
+        (L >= min_l) &
+        (L <= max_l) &
+        (chroma >= min_chroma) &
+        (chroma <= max_chroma)
+    )
+
+    candidates_rgb = candidates_rgb[valid]
+    candidates_lab = candidates_lab[valid]
+
+    if len(candidates_rgb) < n_classes:
+        raise RuntimeError(
+            f"有效候选颜色不足："
+            f"{len(candidates_rgb)} < {n_classes}"
+        )
+
+    # ============================================================
+    # 4. 固定第 0 类
+    # ============================================================
+
+    selected_rgb = [tuple(map(int, fixed_first_color))]
+
+    fixed_rgb_np = np.array(
+        fixed_first_color,
+        dtype=np.uint8
+    ).reshape(1, 1, 3)
+
+    fixed_lab = cv2.cvtColor(
+        fixed_rgb_np,
+        cv2.COLOR_RGB2LAB
+    )[0, 0].astype(np.float32)
+
+    fixed_lab[0] = fixed_lab[0] * 100.0 / 255.0
+    fixed_lab[1] -= 128.0
+    fixed_lab[2] -= 128.0
+
+    selected_lab = [fixed_lab]
+
+    # ============================================================
+    # 5. Farthest Point Sampling
+    #
+    # 每次选择：
+    #
+    #     与已经选择的颜色中
+    #     最小距离最大的颜色
+    #
+    # 即：
+    #
+    #     argmax_x min_i distance(x, color_i)
+    # ============================================================
+
+    diff = candidates_lab - fixed_lab
+    min_dist = np.sqrt(np.sum(diff * diff, axis=1))
+
+    # 防止固定颜色本身被再次选中
+    fixed_rgb_arr = np.array(fixed_first_color)
+
+    same_color = np.all(
+        candidates_rgb == fixed_rgb_arr,
+        axis=1
+    )
+
+    min_dist[same_color] = -1
+
+    for _ in range(n_classes - 1):
+
+        idx = int(np.argmax(min_dist))
+
+        rgb = tuple(
+            map(
+                int,
+                candidates_rgb[idx]
+            )
+        )
+
+        lab = candidates_lab[idx].copy()
+
+        selected_rgb.append(rgb)
+        selected_lab.append(lab)
+
+        # ========================================================
+        # 更新每个候选颜色到“最近已选颜色”的距离
+        # ========================================================
+
+        diff = candidates_lab - lab
+
+        dist = np.sqrt(
+            np.sum(diff * diff, axis=1)
+        )
+
+        min_dist = np.minimum(
+            min_dist,
+            dist
+        )
+
+        # 已选颜色不能再次被选择
+        min_dist[idx] = -1
+
+    return selected_rgb
 def yolo_to_bbox(xc, yc, w, h, img_w, img_h):
     cx = float(xc) * img_w
     cy = float(yc) * img_h
@@ -79,7 +257,7 @@ def draw_labels_on_image(
     - LabelMe JSON：绘制 polygon mask（半透明）
     """
     if color_map is None:
-        default_colors = generate_yolo_colors(80)
+        default_colors = generate_distinct_colors(80)
         color_map = {i: default_colors[i] for i in range(80)}
 
     img = cv2.imread(str(img_path))
@@ -109,7 +287,11 @@ def draw_labels_on_image(
                 except:
                     cls_int = hash(cls_id) & 0xFFFF
 
-                color = color_map[cls_int % len(color_map)]
+                if cls_int not in color_map:
+                    print(f"[WARN] Unknown class id: {cls_int}")
+                    continue
+
+                color = color_map[cls_int]
                 cv2.rectangle(img, (xmin, ymin), (xmax, ymax), color, thickness)
 
                 label_text = classes[int(cls_id)] if classes and cls_id.isdigit() else str(cls_id)
@@ -146,8 +328,21 @@ def draw_labels_on_image(
     return img, count
 
 def build_color_map(num_classes):
-    colors = generate_yolo_colors(num_classes)
-    return {i: colors[i] for i in range(num_classes)}
+    colors = generate_distinct_colors(
+        n_classes=num_classes,
+        fixed_first_color=(255, 0, 0),
+        candidate_count=20000,
+        min_l=35,
+        max_l=90,
+        min_chroma=45,
+        max_chroma=110,
+        seed=42,
+    )
+
+    return {
+        i: colors[i]
+        for i in range(num_classes)
+    }
 
 def process_folder(images_dir, labels_dir, out_dir, classes_path=None,
                    save_undetected=False, ext_list=None, num_workers=1):
@@ -242,10 +437,10 @@ def process_single_image(image_path, labels_dir, out_path, classes_path=None, sh
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Draw YOLO labels on images")
-    parser.add_argument('--images', default=r"E:\test_images\test_1\images", help='images folder or single image path')
-    parser.add_argument('--labels', default=r"E:\test_images\test_1\jsons_2", help='labels folder (matching image basenames) or label file path')
-    parser.add_argument('--out', default=r"E:\test_images\test_1\outputs_2", help='output folder or single output image path')
-    parser.add_argument('--classes', default=r"E:\test\classes.txt", help='optional classes.txt file (one class per line)')
+    parser.add_argument('--images', default=r"E:\test_segment\images", help='images folder or single image path')
+    parser.add_argument('--labels', default=r"E:\test_segment\re_jsons", help='labels folder (matching image basenames) or label file path')
+    parser.add_argument('--out', default=r"E:\test_segment\reoutput", help='output folder or single output image path')
+    parser.add_argument('--classes', default=r"E:\test_segment\classes.txt", help='optional classes.txt file (one class per line)')
     parser.add_argument('--save_undetected', action='store_true', help='also save images without labels')
     parser.add_argument('--ext', nargs='*', default=['.jpg','.jpeg','.png','.bmp','.tif','.tiff','.JPG'], help='image extensions to process')
     parser.add_argument('--show', default=False,action='store_true', help='show image in window (only for single image mode)')

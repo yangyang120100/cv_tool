@@ -6,6 +6,22 @@ import os
 from tqdm import tqdm
 
 ALL_CLASSES =['background', 'asphalt-road', 'concrete-pavement', 'brick-road', 'dirt', 'gravel', 'inland-water', 'standing-water', 'woods', 'tall-vegetation', 'low-vegetation', 'roof', 'wall', 'fence', 'fence-post', 'snow', 'concrete-pole', 'angle-steel-tower', 'steel-tube-tower', 'conductor', 'sky', 'obstacle', 'car', 'bus', 'work-vehicle', 'large-vehicle', 'bicycle', 'person', 'manhole-cover', 'distant-building', 'traffic-light', 'house', 'tricycle']
+# ALL_CLASSES =[
+#     "background",      # 0
+#     "hard pavement",   # 1
+#     "soil",            # 2
+#     "gravel",          # 3
+#     "inland water",    # 4
+#     "standing water",  # 5
+#     "vegetation",      # 6
+#     "building",        # 7
+#     "pole",      # 8
+#     "sky",             # 9
+#     "obstacle",        # 10
+#     "vehicle",         # 11
+#     "person",          # 12
+#     "manhole cover"    # 13
+# ]
 # ALL_CLASSES = ['undefined', 'traffic_cone', 'snow', 'cobble', 'obstacle', 'leaves', 'street_light', 'bikeway',
 #                'ego_vehicle', 'pedestrian_crossing', 'road_block', 'road_marking', 'car', 'bicycle', 'person', 'bus',
 #                'forest', 'bush', 'moss', 'traffic_light', 'motorcycle', 'sidewalk', 'curb', 'asphalt', 'gravel',
@@ -228,10 +244,10 @@ def batch_convert(mask_dir, image_dir, json_dir, min_area=50, epsilon_ratio=0.00
 
 if __name__ == "__main__":
     batch_convert(
-        mask_dir=r"D:\PythonProject\dinov3\test_results\masks",
-        image_dir=r"E:\test_all_add_road_dataset\add_images",
-        json_dir=r"D:\PythonProject\dinov3\test_results\jsons",
+        mask_dir=r"E:\test_segment\remasks",
+        image_dir=r"E:\test_segment\images",
+        json_dir=r"E:\test_segment\re_jsons",
         min_area=4096,
-        epsilon_ratio=0.0001,
+        epsilon_ratio=0.001,
         num_workers=16
     )

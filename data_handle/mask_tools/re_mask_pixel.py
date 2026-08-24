@@ -71,11 +71,29 @@ def remap_folder(
 
 if __name__ == "__main__":
     # 示例：将值为 1 的类别改为 255，值为 2 的改为 128
-    mapping_dict = {0:255}
-
+    labels_map={
+        0:(0,15,19,30),#背景
+        1:(1,2,3),#硬质路面
+        2:(4,),#泥土
+        3:(5,),#砂石
+        4:(6,),#内陆水域
+        5:(7,),#路面积水
+        6:(8,9,10),#植被
+        7:(11,12,13,14,29,31),#建筑
+        8:(16,17,18),#杆塔
+        9:(20,),#天空
+        10:(21,),#障碍物
+        11:(22,23,24,25,26,32),#车辆
+        12:(27,),#人
+        13:(28,),#井盖
+    }
+    mapping_dict=dict()
+    for k,v in labels_map.items():
+        for label in v:
+            mapping_dict[label]=k
     # 批量处理文件夹
-    input_folder = r"D:\DataSets\MyRoad\copy_remasks"   # 替换为你的输入文件夹路径
-    output_folder = r"D:\DataSets\MyRoad\copy_remasks" # 替换为你的输出文件夹路径
+    input_folder = r"E:\test_segment\masks"   # 替换为你的输入文件夹路径
+    output_folder = r"E:\test_segment\remasks" # 替换为你的输出文件夹路径
 
     remap_folder(input_folder, output_folder, mapping_dict)
     print("批量处理完成！")
