@@ -1,67 +1,253 @@
 import json
 import os
+import shutil
 
-# ===== 自定义标签映射表 =====
-# 格式：'旧标签': '新标签'
-# 例如：将 'water' 改为 'inland-water'
+
+# ============================================================
+# 配置
+# ============================================================
+
+JSON_DIR = r"D:\DataSets\Cable\jsons"
+IMAGE_DIR = r"D:\DataSets\Cable\images"
+
 LABEL_MAP = {
-    "cable":"conductor",
-    "white_cable":"conductor"
+    "conductor": "conductor_wire",
+    # "white_cable": "conductor",
 }
 
 
-# ===== 脚本主体 =====
+# ============================================================
+# 查找图片
+# ============================================================
 
-def convert_labels_in_json(input_path, output_path=None, label_map=None):
-    """
-    读取 JSON 文件，将 shapes 中的 label 按映射表替换，并保存。
+IMAGE_EXTENSIONS = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".bmp",
+    ".tif",
+    ".tiff",
+    ".webp",
+]
 
-    Args:
-        input_path (str): 输入 JSON 文件路径
-        output_path (str): 输出 JSON 文件路径，若为 None 则覆盖原文件
-        label_map (dict): 标签映射字典，若为 None 则使用全局 LABEL_MAP
-    """
-    if label_map is None:
-        label_map = LABEL_MAP
 
-    if not label_map:
-        print("警告：映射表为空，没有标签会被修改。")
+def find_image(image_dir, image_name):
 
-    # 读取 JSON
-    with open(input_path, 'r', encoding='utf-8') as f:
+    # 首先尝试原始文件名
+    path = os.path.join(image_dir, image_name)
+
+    if os.path.isfile(path):
+        return path
+
+    # 根据 stem 搜索不同扩展名
+    stem = os.path.splitext(image_name)[0]
+
+    for ext in IMAGE_EXTENSIONS:
+
+        path = os.path.join(
+            image_dir,
+            stem + ext
+        )
+
+        if os.path.isfile(path):
+            return path
+
+    return None
+
+
+# ============================================================
+# 修改单个 JSON
+# ============================================================
+
+def process_json(json_path):
+
+    with open(
+        json_path,
+        "r",
+        encoding="utf-8"
+    ) as f:
+
         data = json.load(f)
 
-    # 统计修改次数
-    modified_count = 0
+    modified_labels = 0
 
-    # 遍历所有 shapes
-    if 'shapes' in data and isinstance(data['shapes'], list):
-        for shape in data['shapes']:
-            if 'label' in shape:
-                old_label = shape['label']
-                if old_label in label_map:
-                    new_label = label_map[old_label]
-                    shape['label'] = new_label
-                    modified_count += 1
-                    print(f"修改标签: '{old_label}' -> '{new_label}'")
+    # --------------------------------------------------------
+    # 1. 修改 label
+    # --------------------------------------------------------
 
-    # 确定输出路径
-    if output_path is None:
-        output_path = input_path  # 覆盖原文件
+    shapes = data.get("shapes", [])
 
-    # 保存 JSON（保留原始格式，缩进保持与原文件一致，这里使用 2 空格）
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    for shape in shapes:
 
-    print(f"\n完成！共修改 {modified_count} 个标签。")
-    print(f"结果已保存至: {output_path}")
+        if not isinstance(shape, dict):
+            continue
+
+        old_label = shape.get("label")
+
+        if old_label in LABEL_MAP:
+
+            new_label = LABEL_MAP[old_label]
+
+            shape["label"] = new_label
+
+            modified_labels += 1
+
+            print(
+                f"    label: "
+                f"{old_label} -> {new_label}"
+            )
+
+    # --------------------------------------------------------
+    # 2. 修复 imagePath
+    # --------------------------------------------------------
+
+    image_path_old = data.get("imagePath")
+
+    if image_path_old:
+
+        # 只取原 imagePath 的文件名
+        image_name = os.path.basename(
+            image_path_old.replace("\\", "/")
+        )
+
+    else:
+
+        # 如果 JSON 没有 imagePath
+        # 使用 JSON 文件名寻找图片
+        image_name = os.path.splitext(
+            os.path.basename(json_path)
+        )[0]
+
+    # 在真实图片目录中寻找
+    real_image_path = find_image(
+        IMAGE_DIR,
+        image_name
+    )
+
+    if real_image_path is None:
+
+        print(
+            f"    [警告] 找不到图片: "
+            f"{image_name}"
+        )
+
+    else:
+
+        # 计算从 JSON 目录到图片目录的相对路径
+        relative_image_path = os.path.relpath(
+            real_image_path,
+            os.path.dirname(json_path)
+        )
+
+        # LabelMe 推荐使用 /
+        relative_image_path = relative_image_path.replace(
+            "\\",
+            "/"
+        )
+
+        data["imagePath"] = relative_image_path
+
+        print(
+            f"    imagePath: "
+            f"{image_path_old} -> "
+            f"{relative_image_path}"
+        )
+
+        # ----------------------------------------------------
+        # 关键：
+        # imageData 设置为 None 没问题，
+        # 但 imagePath 必须能够找到真实图片
+        # ----------------------------------------------------
+
+    # --------------------------------------------------------
+    # 3. 保存
+    # --------------------------------------------------------
+
+    # 先备份
+    backup_path = json_path + ".bak"
+
+    if not os.path.exists(backup_path):
+
+        shutil.copy2(
+            json_path,
+            backup_path
+        )
+
+    # 临时文件
+    temp_path = json_path + ".tmp"
+
+    with open(
+        temp_path,
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        json.dump(
+            data,
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
+
+    # 替换原文件
+    os.replace(
+        temp_path,
+        json_path
+    )
+
+    return modified_labels
 
 
-# ===== 使用示例 =====
+# ============================================================
+# 批量处理
+# ============================================================
+
+def main():
+
+    json_files = [
+        f
+        for f in os.listdir(JSON_DIR)
+        if f.lower().endswith(".json")
+    ]
+
+    print(
+        f"发现 {len(json_files)} 个 JSON 文件"
+    )
+
+    print("=" * 70)
+
+    total_modified = 0
+
+    for file_name in json_files:
+
+        json_path = os.path.join(
+            JSON_DIR,
+            file_name
+        )
+
+        print(
+            f"\n处理: {file_name}"
+        )
+
+        count = process_json(
+            json_path
+        )
+
+        total_modified += count
+
+    print("\n")
+    print("=" * 70)
+    print("处理完成")
+    print("=" * 70)
+
+    print(
+        f"总 JSON 数量: {len(json_files)}"
+    )
+
+    print(
+        f"总标签修改数: {total_modified}"
+    )
+
+
 if __name__ == "__main__":
-    import os
-
-    json_dir=r"E:\add_road_0701\jsons"
-    for file_name in os.listdir(json_dir):
-        json_path=os.path.join(json_dir,file_name)
-        convert_labels_in_json(json_path, json_path)
+    main()

@@ -115,11 +115,13 @@ if __name__ == '__main__':
     # 'jyz_shackle':4,
     # 'jyz_strain':5
     # }
-    classes_map={'background': 0, 'asphalt-road': 1, 'concrete-pavement': 2, 'brick-road': 3, 'dirt': 4, 'gravel': 5, 'inland-water': 6, 'standing-water': 7, 'woods': 8, 'tall-vegetation': 9, 'low-vegetation': 10, 'roof': 11, 'wall': 12, 'fence': 13, 'fence-post': 14, 'snow': 15, 'concrete-pole': 16, 'angle-steel-tower': 17, 'steel-tube-tower': 18, 'conductor': 19, 'sky': 20, 'obstacle': 21, 'car': 22, 'bus': 23, 'work-vehicle': 24, 'large-vehicle': 25, 'bicycle': 26, 'person': 27, 'manhole-cover': 28, 'distant-building': 29, 'traffic-light': 30, 'house': 31, 'tricycle': 32}
-
-    images_dir = r"D:\DataSets\MyRoad\images"
-    labels_dir = r"D:\DataSets\MyRoad\jsons"
-    save_labels_dir = r"D:\DataSets\MyRoad\masks"
+    # classes_map={'background': 0, 'asphalt-road': 1, 'concrete-pavement': 2, 'brick-road': 3, 'dirt': 4, 'gravel': 5, 'inland-water': 6, 'standing-water': 7, 'woods': 8, 'tall-vegetation': 9, 'low-vegetation': 10, 'roof': 11, 'wall': 12, 'fence': 13, 'fence-post': 14, 'snow': 15, 'concrete-pole': 16, 'angle-steel-tower': 17, 'steel-tube-tower': 18,  'sky': 20, 'obstacle': 21, 'car': 22, 'bus': 23, 'work-vehicle': 24, 'large-vehicle': 25, 'bicycle': 26, 'person': 27, 'manhole-cover': 28, 'distant-building': 29, 'traffic-light': 30, 'house': 31, 'tricycle': 32}
+    classes_map={
+        'background': 0, 'conductor_wire': 1, 'lead_wire': 2
+    }
+    images_dir = r"E:\cable_datas\images"
+    labels_dir = r"E:\cable_datas\jsons"
+    save_labels_dir = r"E:\cable_datas\masks"
 
     generate_masks_multithread(
         images_dir,
