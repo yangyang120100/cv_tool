@@ -3,6 +3,6 @@ __pycache__/
 *.pyc
 .idea/
 *.json
-*.md
+
 venv/
 .env
