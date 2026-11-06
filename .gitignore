@@ -1,0 +1,8 @@
+# 常见的非 Python 内容
+__pycache__/
+*.pyc
+.idea/
+*.json
+*.md
+venv/
+.env

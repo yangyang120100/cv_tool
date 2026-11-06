@@ -1,0 +1,7 @@
+# 本地网页与常用图像/JSON工具的基础依赖
+streamlit>=1.35,<2
+numpy>=1.24,<2.0
+opencv-python-headless>=4.8,<4.12
+Pillow>=10.0
+tqdm>=4.66
+pandas>=2.0
